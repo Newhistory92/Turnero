@@ -26,3 +26,13 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /lib/generated/prisma
+
+# indice local de tokensave (se regenera solo)
+/.tokensave/
+
+# cache de graphify: el grafo si se versiona, la cache no
+/graphify-out/cache/
+
+# resultados de playwright
+/test-results/
+/playwright-report/

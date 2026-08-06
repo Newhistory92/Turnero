@@ -1,0 +1,267 @@
+{
+  "D:\\Mi Documentos\\Documents\\Turnero\\.claude\\settings.local.json": {
+    "mtime": 1785972604.3761935,
+    "ast_hash": "97aa3fed318bc2fbde99d7741a22ad47",
+    "semantic_hash": "97aa3fed318bc2fbde99d7741a22ad47"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\.tokensave\\branch-meta.json": {
+    "mtime": 1785971614.8055515,
+    "ast_hash": "9b9cb0e9fd1d6eb9fe7fff28f2b4d55c",
+    "semantic_hash": "9b9cb0e9fd1d6eb9fe7fff28f2b4d55c"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\.tokensave\\config.json": {
+    "mtime": 1785971614.5362644,
+    "ast_hash": "09daaced72cb5fac938197de132fddbe",
+    "semantic_hash": "09daaced72cb5fac938197de132fddbe"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\OperadorTurno\\page.tsx": {
+    "mtime": 1781049104.37096,
+    "ast_hash": "ea146a5aeb3a9cf1698ad18853c0805e",
+    "semantic_hash": "ea146a5aeb3a9cf1698ad18853c0805e"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\api\\socket\\route.ts": {
+    "mtime": 1781049104.3719597,
+    "ast_hash": "e14cb3fbb6605a5a20807e03c0ed470d",
+    "semantic_hash": "e14cb3fbb6605a5a20807e03c0ed470d"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\api\\turnos\\route.ts": {
+    "mtime": 1781049104.373962,
+    "ast_hash": "303ccc2dd7a22cbcce5f0336bce56bbd",
+    "semantic_hash": "303ccc2dd7a22cbcce5f0336bce56bbd"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\config\\primsma.ts": {
+    "mtime": 1781049104.375962,
+    "ast_hash": "26172fe1efd7cea15a2eb5f93677dccd",
+    "semantic_hash": "26172fe1efd7cea15a2eb5f93677dccd"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\layout.tsx": {
+    "mtime": 1781056010.7614558,
+    "ast_hash": "d4bd9534c39691d59ba2dd4f269eee67",
+    "semantic_hash": "d4bd9534c39691d59ba2dd4f269eee67"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\page.tsx": {
+    "mtime": 1781049104.378962,
+    "ast_hash": "ac4e22650a0478a721359a2b61d9877b",
+    "semantic_hash": "ac4e22650a0478a721359a2b61d9877b"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\public-display\\departamento\\components\\ClockDisplay.tsx": {
+    "mtime": 1781049104.3819604,
+    "ast_hash": "ff3da075323b156ec5a26178d90020d6",
+    "semantic_hash": "ff3da075323b156ec5a26178d90020d6"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\public-display\\departamento\\components\\CurrentTurnoBanner.tsx": {
+    "mtime": 1781049104.3819604,
+    "ast_hash": "d1cfc211a867bc851acda24f917a96c8",
+    "semantic_hash": "d1cfc211a867bc851acda24f917a96c8"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\public-display\\departamento\\components\\DepartamentoSelector.tsx": {
+    "mtime": 1781049104.382962,
+    "ast_hash": "e7d2430cb7008b7231b42f21a9242d48",
+    "semantic_hash": "e7d2430cb7008b7231b42f21a9242d48"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\public-display\\departamento\\components\\TurnoCard.tsx": {
+    "mtime": 1781049104.3839612,
+    "ast_hash": "716cd95437ac163c38fbdf5a8e145bc8",
+    "semantic_hash": "716cd95437ac163c38fbdf5a8e145bc8"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\public-display\\departamento\\components\\TurnoDisplay.tsx": {
+    "mtime": 1781049104.3849633,
+    "ast_hash": "386ac1ff535a9408e0683bcca581145d",
+    "semantic_hash": "386ac1ff535a9408e0683bcca581145d"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\public-display\\departamento\\components\\TurnoList.tsx": {
+    "mtime": 1781049104.38596,
+    "ast_hash": "7a4a5631997b5ca2a0c4afe60fd5b36b",
+    "semantic_hash": "7a4a5631997b5ca2a0c4afe60fd5b36b"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\public-display\\page.tsx": {
+    "mtime": 1781049104.38696,
+    "ast_hash": "7771876bb3cfe5a205ff4e8d38954aff",
+    "semantic_hash": "7771876bb3cfe5a205ff4e8d38954aff"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\turnero\\[departamento]\\components\\SeleccionServicio.tsx": {
+    "mtime": 1781049104.38796,
+    "ast_hash": "740e54d4d4bee0db6a04b99d528735c4",
+    "semantic_hash": "740e54d4d4bee0db6a04b99d528735c4"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\turnero\\[departamento]\\components\\Ticket Printer.tsx": {
+    "mtime": 1781049104.3889606,
+    "ast_hash": "d273f00d0e89a87aa118367842a6037a",
+    "semantic_hash": "d273f00d0e89a87aa118367842a6037a"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\turnero\\[departamento]\\components\\TurnoFueraDeHorario.tsx": {
+    "mtime": 1781049104.3899615,
+    "ast_hash": "5f178f5023f1be18d6ad559ef8e6af05",
+    "semantic_hash": "5f178f5023f1be18d6ad559ef8e6af05"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\turnero\\[departamento]\\page.tsx": {
+    "mtime": 1781049104.3909607,
+    "ast_hash": "242a14b9b63054e1127817ffa9408787",
+    "semantic_hash": "242a14b9b63054e1127817ffa9408787"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\app\\turnero\\page.tsx": {
+    "mtime": 1781049104.3919642,
+    "ast_hash": "afbc55437d1fe5bd53b58497c4af6ba2",
+    "semantic_hash": "afbc55437d1fe5bd53b58497c4af6ba2"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\components.json": {
+    "mtime": 1781049104.3939598,
+    "ast_hash": "ddd0ce70589615d5db283aadcf4d5e20",
+    "semantic_hash": "ddd0ce70589615d5db283aadcf4d5e20"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\components\\supabase-status.tsx": {
+    "mtime": 1781055999.1778588,
+    "ast_hash": "9692e0200280d1c56937167a59e055d3",
+    "semantic_hash": "9692e0200280d1c56937167a59e055d3"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\components\\ui\\badge.tsx": {
+    "mtime": 1781049104.3949645,
+    "ast_hash": "cf7cadb910e460e4332d4fd082851c16",
+    "semantic_hash": "cf7cadb910e460e4332d4fd082851c16"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\components\\ui\\button.tsx": {
+    "mtime": 1781049104.3959606,
+    "ast_hash": "55bae00127c054032e205b63a62802db",
+    "semantic_hash": "55bae00127c054032e205b63a62802db"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\components\\ui\\card.tsx": {
+    "mtime": 1781049104.3969634,
+    "ast_hash": "b6df38eb58a41ec0235a0024dec73e8e",
+    "semantic_hash": "b6df38eb58a41ec0235a0024dec73e8e"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\components\\ui\\select.tsx": {
+    "mtime": 1781049104.3989637,
+    "ast_hash": "2889e0674fc07392d572aa0b664259fc",
+    "semantic_hash": "2889e0674fc07392d572aa0b664259fc"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\components\\ui\\toast.tsx": {
+    "mtime": 1781049104.39996,
+    "ast_hash": "5c7c1ac18b49d8e42f0c0c400e242a86",
+    "semantic_hash": "5c7c1ac18b49d8e42f0c0c400e242a86"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\hooks\\use-mobile.tsx": {
+    "mtime": 1781049104.39996,
+    "ast_hash": "654e2ca2e9fddc27eb7e3954900dc48e",
+    "semantic_hash": "654e2ca2e9fddc27eb7e3954900dc48e"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\hooks\\use-toast.ts": {
+    "mtime": 1781049104.4009745,
+    "ast_hash": "4fd00028cb181c44efb5b049c470426c",
+    "semantic_hash": "4fd00028cb181c44efb5b049c470426c"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\lib\\api.ts": {
+    "mtime": 1781049104.401965,
+    "ast_hash": "79f0529e3f4ac30ab81ce7d0824189c2",
+    "semantic_hash": "79f0529e3f4ac30ab81ce7d0824189c2"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\lib\\closeTurnero.ts": {
+    "mtime": 1781049104.4029627,
+    "ast_hash": "6801a76fb486ea4f0f6d5d1d4c0d20da",
+    "semantic_hash": "6801a76fb486ea4f0f6d5d1d4c0d20da"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\lib\\next.ts": {
+    "mtime": 1781049104.4029627,
+    "ast_hash": "bb31b09550f1d3a9bb49b8747f151f8f",
+    "semantic_hash": "bb31b09550f1d3a9bb49b8747f151f8f"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\lib\\supabase.ts": {
+    "mtime": 1781055931.3605354,
+    "ast_hash": "0417b1f3d413910a5ca2708b5d386510",
+    "semantic_hash": "0417b1f3d413910a5ca2708b5d386510"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\lib\\turno-context.tsx": {
+    "mtime": 1781055992.34253,
+    "ast_hash": "6946f44468737ab2d603516bf551dc2b",
+    "semantic_hash": "6946f44468737ab2d603516bf551dc2b"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\lib\\types.ts": {
+    "mtime": 1781049104.4059608,
+    "ast_hash": "d587ab4fad4e6414c1306daacd5f0e0f",
+    "semantic_hash": "d587ab4fad4e6414c1306daacd5f0e0f"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\lib\\useSocket.ts": {
+    "mtime": 1781049104.4069679,
+    "ast_hash": "5c4e00721fa53781f4be73661171f2f7",
+    "semantic_hash": "5c4e00721fa53781f4be73661171f2f7"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\lib\\utils.ts": {
+    "mtime": 1781049104.4079611,
+    "ast_hash": "1d8011eb18769078bf77502b220daa5e",
+    "semantic_hash": "1d8011eb18769078bf77502b220daa5e"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\next.config.mjs": {
+    "mtime": 1781049104.4089668,
+    "ast_hash": "9aa2e7819cd795d6be85fa73e0af997a",
+    "semantic_hash": "9aa2e7819cd795d6be85fa73e0af997a"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\package.json": {
+    "mtime": 1781056568.8173034,
+    "ast_hash": "141851457168418367b126f37343a897",
+    "semantic_hash": "141851457168418367b126f37343a897"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\postcss.config.mjs": {
+    "mtime": 1781049104.41396,
+    "ast_hash": "3507368dae6e94b0070b0a10efa15a05",
+    "semantic_hash": "3507368dae6e94b0070b0a10efa15a05"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\server.ts": {
+    "mtime": 1781055956.011435,
+    "ast_hash": "8df5dab84831ee139ff32581a63a3142",
+    "semantic_hash": "8df5dab84831ee139ff32581a63a3142"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\tailwind.config.ts": {
+    "mtime": 1781049104.423962,
+    "ast_hash": "96d7b3f243035248ae3c96cb2bc8d3f0",
+    "semantic_hash": "96d7b3f243035248ae3c96cb2bc8d3f0"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\tsconfig.json": {
+    "mtime": 1781049104.4249594,
+    "ast_hash": "16b194b330f5ebaf79ee025de0056b91",
+    "semantic_hash": "16b194b330f5ebaf79ee025de0056b91"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\README.md": {
+    "mtime": 1781049104.368959,
+    "ast_hash": "b2c1afd5cd4ff67e0b816ff4880569a9",
+    "semantic_hash": "b2c1afd5cd4ff67e0b816ff4880569a9"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\docs\\superpowers\\plans\\2026-06-09-socket-supabase.md": {
+    "mtime": 1781055759.4885361,
+    "ast_hash": "92f02dc0e5bfe5899bae992e344bb6d9",
+    "semantic_hash": "92f02dc0e5bfe5899bae992e344bb6d9"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\docs\\superpowers\\specs\\2026-06-09-socket-supabase-design.md": {
+    "mtime": 1781055529.0144165,
+    "ast_hash": "7ae7afe7e9129ecbfba56d780c46cda0",
+    "semantic_hash": "7ae7afe7e9129ecbfba56d780c46cda0"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\public\\OSP_Gobierno.webp": {
+    "mtime": 1781049104.4169796,
+    "ast_hash": "f7d1a1b189f4555db03c5d57791ba5da",
+    "semantic_hash": "f7d1a1b189f4555db03c5d57791ba5da"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\public\\placeholder-logo.png": {
+    "mtime": 1781049104.4179635,
+    "ast_hash": "95d8d1a4a9bbcccc875e2c381e74064a",
+    "semantic_hash": "95d8d1a4a9bbcccc875e2c381e74064a"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\public\\placeholder-logo.svg": {
+    "mtime": 1781049104.4189656,
+    "ast_hash": "1e16dc7df824652c5906a2ab44aef78c",
+    "semantic_hash": "1e16dc7df824652c5906a2ab44aef78c"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\public\\placeholder-user.jpg": {
+    "mtime": 1781049104.4199777,
+    "ast_hash": "7ee6562646feae6d6d77e2c72e204591",
+    "semantic_hash": "7ee6562646feae6d6d77e2c72e204591"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\public\\placeholder.jpg": {
+    "mtime": 1781049104.4209628,
+    "ast_hash": "1e533b7b4545d1d605144ce893afc601",
+    "semantic_hash": "1e533b7b4545d1d605144ce893afc601"
+  },
+  "D:\\Mi Documentos\\Documents\\Turnero\\public\\placeholder.svg": {
+    "mtime": 1781049104.4229603,
+    "ast_hash": "35707bd9960ba5281c72af927b79291f",
+    "semantic_hash": "35707bd9960ba5281c72af927b79291f"
+  }
+}
