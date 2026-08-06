@@ -16,10 +16,25 @@
 
 Este plan **no toca la UI**. Al terminar, el kiosco viejo puede quedar roto o desconectado: es esperado, lo reemplaza SP1. Lo que tiene que quedar verde son los tests.
 
-**Pendientes externos que bloquean tareas puntuales** (§12 del spec). Si no los tenés todavía, las tareas afectadas lo dicen y traen un camino alternativo:
+**Pendientes externos que bloquean tareas puntuales** (§12 del spec):
 
-- `DATABASE_URL` de la instancia real → Tareas 2, 3. Alternativa: contenedor Docker local.
-- Nombre y columnas del objeto de afiliados → Tarea 9. Alternativa: implementación stub, ya prevista.
+- `DATABASE_URL` de la instancia real → Tareas 2, 3.
+- Nombre y columnas del objeto de afiliados → Tarea 9. Camino alternativo: implementación stub, ya prevista.
+
+### Tres bases, no dos
+
+Los tests borran datos en cada corrida (`deleteMany()` antes de cada test, y el de concurrencia genera
+50 turnos de golpe). Por eso hacen falta tres bases en la misma instancia de SQL Server 2022:
+
+| Base | Para qué | Quién la borra |
+|---|---|---|
+| `<Institucional>` | Afiliados y empleados | Nadie. Sólo lectura |
+| `Turnero` | Los turnos reales | Nadie |
+| `Turnero_Test` | Correr los tests | **Los tests, en cada corrida** |
+
+La Tarea 1 incluye una **guarda que aborta la suite** si la cadena de conexión no apunta a una base
+cuyo nombre termine en `_Test`. Es barata y evita el accidente de vaciar producción por un typo en
+un `.env`.
 
 ## Estructura de archivos
 
@@ -39,7 +54,7 @@ Este plan **no toca la UI**. Al terminar, el kiosco viejo puede quedar roto o de
 | `server/handlers/llamarTurno.ts` | Transición condicionada |
 | `server/index.ts` | Arranque. Reemplaza el cuerpo de `server.ts` |
 | `vitest.config.ts` | Configuración de tests |
-| `docker-compose.test.yml` | SQL Server 2022 para los tests de integración |
+| `tests/setup.ts` | Guarda que impide correr los tests contra una base que no sea de test |
 
 ---
 
@@ -71,6 +86,10 @@ export default defineConfig({
     environment: "node",
     include: ["tests/**/*.test.ts"],
     testTimeout: 30_000,
+    setupFiles: ["./tests/setup.ts"],
+    // Los tests de integracion comparten la misma base: si corren en paralelo
+    // se pisan los deleteMany() entre si.
+    fileParallelism: false,
   },
   resolve: {
     alias: {
@@ -80,9 +99,50 @@ export default defineConfig({
 })
 ```
 
-`testTimeout` alto porque los tests de integración levantan SQL Server.
+`testTimeout` alto porque los tests de integración van contra SQL Server por red.
 
-- [ ] **Step 3: Escribir el test de humo**
+- [ ] **Step 3: Escribir la guarda de seguridad**
+
+Los tests borran datos. Esta guarda es lo único que separa un typo en el `.env` de vaciar los turnos
+reales de la institución.
+
+Crear `tests/setup.ts`:
+
+```typescript
+import { config } from "dotenv"
+
+// Los tests leen .env.test.local, nunca .env.local.
+config({ path: ".env.test.local", override: true })
+
+const url = process.env.DATABASE_URL ?? ""
+const base = /database=([^;]+)/i.exec(url)?.[1] ?? ""
+
+if (!base.endsWith("_Test")) {
+  throw new Error(
+    `Los tests borran datos y solo pueden correr contra una base terminada en "_Test".\n` +
+      `DATABASE_URL apunta a: "${base || "(sin database= en la cadena)"}"\n` +
+      `Revisá .env.test.local antes de volver a correr.`
+  )
+}
+```
+
+Instalar `dotenv`:
+
+```bash
+npm install -D dotenv
+```
+
+- [ ] **Step 4: Verificar que la guarda muerde**
+
+Crear temporalmente un `.env.test.local` apuntando a `database=Turnero` (sin `_Test`) y correr
+`npm test`.
+
+Expected: la suite **aborta** con el mensaje de la guarda. Si los tests corren igual, la guarda no
+está funcionando y no se puede seguir.
+
+Corregir el archivo a `database=Turnero_Test` antes del paso siguiente.
+
+- [ ] **Step 5: Escribir el test de humo**
 
 Crear `tests/smoke.test.ts`:
 
@@ -96,7 +156,7 @@ describe("entorno de test", () => {
 })
 ```
 
-- [ ] **Step 4: Agregar los scripts**
+- [ ] **Step 6: Agregar los scripts**
 
 En `package.json`, dentro de `"scripts"`:
 
@@ -107,16 +167,18 @@ En `package.json`, dentro de `"scripts"`:
 "test:integration": "vitest run tests/integration"
 ```
 
-- [ ] **Step 5: Verificar**
+- [ ] **Step 7: Verificar**
 
 Run: `npm test`
 Expected: `1 passed`
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 8: Commit**
+
+`.env.test.local` queda fuera del commit: `.gitignore` ya excluye todo `.env*`.
 
 ```bash
-git add vitest.config.ts tests/smoke.test.ts package.json package-lock.json
-git commit -m "chore: configurar Vitest"
+git add vitest.config.ts tests/setup.ts tests/smoke.test.ts package.json package-lock.json
+git commit -m "chore: configurar Vitest con guarda de base de test"
 ```
 
 ---
@@ -125,38 +187,46 @@ git commit -m "chore: configurar Vitest"
 
 **Files:**
 - Modify: `prisma/schema.prisma` (reemplazo completo)
-- Create: `docker-compose.test.yml`
 - Create: `lib/db.ts`
 - Delete: `app/config/primsma.ts`
 
-- [ ] **Step 1: Levantar SQL Server para desarrollo y test**
+- [ ] **Step 1: Crear las dos bases en el servidor**
 
-Crear `docker-compose.test.yml`:
+En el SQL Server 2022 de la institución, con un login que tenga permiso para crear bases:
 
-```yaml
-services:
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "Turnero_Test_2026!"
-      MSSQL_PID: Developer
-    ports:
-      - "1433:1433"
+```sql
+CREATE DATABASE [Turnero];
+CREATE DATABASE [Turnero_Test];
 ```
 
-Run: `docker compose -f docker-compose.test.yml up -d`
-Expected: contenedor arriba. Verificar con `docker compose -f docker-compose.test.yml ps` → estado `running`.
+`Turnero_Test` existe porque **los tests borran datos en cada corrida**. No es opcional: sin base
+separada, `npm test` vacía los turnos reales.
 
-- [ ] **Step 2: Configurar la cadena de conexión**
+El login de la aplicación necesita:
+- `db_owner` sobre `Turnero` y `Turnero_Test` (Prisma corre migraciones)
+- `SELECT` sobre la base institucional de afiliados (pendiente 3 del spec)
 
-En `.env.local` (que está en `.gitignore`, no se commitea):
+- [ ] **Step 2: Configurar las dos cadenas de conexión**
+
+En `.env.local` — desarrollo y producción:
 
 ```
-DATABASE_URL="sqlserver://localhost:1433;database=Turnero;user=sa;password=Turnero_Test_2026!;encrypt=true;trustServerCertificate=true"
+DATABASE_URL="sqlserver://TU-SERVIDOR:1433;database=Turnero;user=turnero_app;password=<clave>;encrypt=true;trustServerCertificate=true"
 ```
 
-Cuando llegue la instancia institucional, sólo cambia esta línea.
+En `.env.test.local` — sólo tests:
+
+```
+DATABASE_URL="sqlserver://TU-SERVIDOR:1433;database=Turnero_Test;user=turnero_app;password=<clave>;encrypt=true;trustServerCertificate=true"
+```
+
+Los dos archivos están cubiertos por `.env*` en `.gitignore`: no se commitean nunca.
+
+Si el servidor usa una instancia con nombre en vez de puerto, la forma es
+`sqlserver://TU-SERVIDOR\\INSTANCIA;database=...`.
+
+`trustServerCertificate=true` sirve mientras el servidor use un certificado autofirmado. Si la
+institución tiene un certificado válido, sacalo: es lo correcto.
 
 - [ ] **Step 3: Escribir el schema**
 
@@ -366,6 +436,28 @@ Expected: crea `prisma/migrations/<timestamp>_inicial/` y termina con `Your data
 
 Si aparece *"Introduced foreign key constraint ... may cause cycles"*, falta un `onDelete: NoAction` — revisar el Step 3.
 
+- [ ] **Step 4b: Aplicar la migración también a la base de test**
+
+`migrate dev` sólo tocó `Turnero`. La base de test necesita el mismo schema, con `migrate deploy`
+(que aplica sin generar migraciones nuevas):
+
+```powershell
+$env:DATABASE_URL="sqlserver://TU-SERVIDOR:1433;database=Turnero_Test;user=turnero_app;password=<clave>;encrypt=true;trustServerCertificate=true"
+npx prisma migrate deploy
+Remove-Item Env:DATABASE_URL
+```
+
+Expected: `All migrations have been successfully applied.`
+
+**Este paso se repite cada vez que se agregue una migración.** Conviene dejarlo como script en
+`package.json`:
+
+```json
+"db:test:migrate": "dotenv -e .env.test.local -- prisma migrate deploy"
+```
+
+que requiere `npm install -D dotenv-cli`.
+
 - [ ] **Step 5: Crear el singleton de Prisma**
 
 Crear `lib/db.ts`:
@@ -412,7 +504,7 @@ Expected: `1 passed`
 - [ ] **Step 8: Commit**
 
 ```bash
-git add prisma/schema.prisma prisma/migrations docker-compose.test.yml lib/db.ts tests/integration/db.test.ts
+git add prisma/schema.prisma prisma/migrations lib/db.ts tests/integration/db.test.ts package.json
 git rm --cached app/config/primsma.ts
 git commit -m "feat: schema de SQL Server y cliente Prisma"
 ```
@@ -767,6 +859,28 @@ npx prisma db seed
 ```
 
 Expected: `Seed listo: 15 trámites, 11 boxes, 4 categorías`
+
+- [ ] **Step 3b: Sembrar también la base de test**
+
+Los tests de las tareas siguientes buscan trámites por nombre (`"Planes Especiales"`,
+`"Prácticas Médicas"`), así que la base de test necesita el mismo catálogo:
+
+```powershell
+$env:DATABASE_URL="sqlserver://TU-SERVIDOR:1433;database=Turnero_Test;user=turnero_app;password=<clave>;encrypt=true;trustServerCertificate=true"
+npx prisma db seed
+Remove-Item Env:DATABASE_URL
+```
+
+Expected: el mismo mensaje.
+
+Agregar el script equivalente en `package.json`:
+
+```json
+"db:test:seed": "dotenv -e .env.test.local -- prisma db seed"
+```
+
+El seed **no borra antes de insertar**: si se corre dos veces sobre la misma base, duplica el
+catálogo y los tests de conteo fallan. Para rehacerlo, `npx prisma migrate reset` primero.
 
 - [ ] **Step 4: Verificar con un test**
 
@@ -2564,7 +2678,7 @@ git commit -m "chore: cerrar SP0 y actualizar el grafo del repositorio"
 | §9.2 idempotencia por `requestId` | 10 |
 | §9.3 llamado concurrente | 11 |
 | §10.1 unitarios de los tres módulos puros | 5, 6, 7 |
-| §10.2 concurrencia, idempotencia, llamado | 10, 11 |
+| §10.2 concurrencia, idempotencia, llamado (contra SQL Server real) | 10, 11 |
 | §10.3 aislamiento por ala | 13 |
 
 **Fuera de este plan, va en SP2:** `rellamarTurno`, `marcarAusente`, `iniciarAtencion`, `finalizarAtencion`, `SesionOperador` con latido, job diario de abandonados, job de retención de DNI. La máquina de estados de la Tarea 5 ya los contempla; falta el handler y la UI.

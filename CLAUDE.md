@@ -76,17 +76,28 @@ npm run dev
 npm test
 ```
 
-```bash
-docker compose -f docker-compose.test.yml up -d
-```
-
 `npm run dev` levanta el custom server con `tsx`, no `next dev`. Cambiar eso rompe Socket.io.
 
-## Dos bases de datos
+## Tres bases de datos
 
-- **Turnero** (nuestra): Prisma migra acá. `DATABASE_URL`.
-- **Institucional** (ajena, **sólo lectura**): afiliados y empleados. Se lee con `$queryRaw` y nombre
-  de tres partes, desde la misma instancia. **Nunca** se le corre una migración.
+**No se usa Docker.** Todo vive en el SQL Server 2022 de la institución, al que la máquina de
+desarrollo llega por red.
+
+| Base | Para qué | Cadena de conexión | Quién la borra |
+|---|---|---|---|
+| `<Institucional>` | Afiliados y empleados, **sólo lectura** | Se lee por `$queryRaw` con nombre de tres partes | Nadie. **Nunca** se le corre una migración |
+| `Turnero` | Los turnos reales | `.env.local` | Nadie |
+| `Turnero_Test` | Correr los tests | `.env.test.local` | **Los tests, en cada corrida** |
+
+Los tests hacen `deleteMany()` antes de cada caso. `tests/setup.ts` aborta la suite si
+`DATABASE_URL` no apunta a una base terminada en `_Test`: es lo único que separa un typo en el
+`.env` de vaciar los turnos reales. **No la desactives.**
+
+Cada migración nueva hay que aplicarla a las dos bases:
+
+```bash
+npm run db:test:migrate
+```
 
 Si `AFILIADOS_TABLA` no está definida, el repositorio de afiliados usa un stub con tres DNI de prueba.
 Es el modo esperado hasta que la institución pase los datos reales.

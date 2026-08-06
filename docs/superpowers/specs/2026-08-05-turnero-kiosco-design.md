@@ -533,8 +533,13 @@ Los tres módulos de `lib/queue/` son puros para esto:
 
 ### 10.2 Integración — exigen SQL Server real
 
-Van contra un contenedor `mcr.microsoft.com/mssql/server:2022-latest`. **No sirven contra SQLite**, porque
-lo que se prueba es el comportamiento del motor.
+Van contra una base `Turnero_Test` **en la misma instancia de SQL Server 2022** que usa producción.
+**No sirven contra SQLite**, porque lo que se prueba es el comportamiento del motor: el
+`MERGE ... WITH (HOLDLOCK) ... OUTPUT` que resuelve el número duplicado es sintaxis exclusiva de SQL
+Server, y contra otro motor el test pasaría sin probar nada.
+
+Base separada, no la de producción: los tests borran datos en cada corrida. Una guarda en el arranque
+de la suite aborta todo si la cadena de conexión no apunta a una base terminada en `_Test`.
 
 1. **Concurrencia del contador.** 50 `GENERAR_TURNO` simultáneos → **50 números distintos**. Es el test
    central: sin él, el bug del §4.3 vuelve.
