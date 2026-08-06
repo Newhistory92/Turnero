@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { SocketProvider } from "@/lib/turno-context"
+import { SupabaseStatus } from "@/components/supabase-status"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -19,7 +20,10 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
-        <SocketProvider>{children}</SocketProvider>
+        <SocketProvider>
+          {children}
+          <SupabaseStatus />
+        </SocketProvider>
       </body>
     </html>
   )

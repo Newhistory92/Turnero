@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "tsx --env-file=.env.local server.ts",
     "lint": "next lint",
-    "start": "next start"
+    "start": "NODE_ENV=production tsx --env-file=.env.local server.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -14,6 +14,7 @@
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-toast": "^1.2.14",
+    "@supabase/supabase-js": "^2.108.1",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -38,6 +39,7 @@
     "postcss": "^8.5",
     "prisma": "^6.10.1",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.22.4",
     "typescript": "^5"
   }
 }
