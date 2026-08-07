@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,15 +7,183 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Sede {
+  id     String  @id @default(uuid())
+  nombre String
+  activa Boolean @default(true)
+  alas   Ala[]
+  pisos  Piso[]
+}
+
+model Ala {
+  id              String    @id @default(uuid())
+  sedeId          String
+  sede            Sede      @relation(fields: [sedeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  nombre          String
+  orden           Int
+  boxes           Box[]
+  tramitesDestino Tramite[] @relation("TramiteDestinoAla")
+
+  @@unique([sedeId, nombre])
+}
+
+model Piso {
+  id              String    @id @default(uuid())
+  sedeId          String
+  sede            Sede      @relation(fields: [sedeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  nombre          String
+  nivel           Int
+  boxes           Box[]
+  tramitesDestino Tramite[] @relation("TramiteDestinoPiso")
+
+  @@unique([sedeId, nivel])
+}
+
+model Box {
+  id           String           @id @default(uuid())
+  alaId        String
+  ala          Ala              @relation(fields: [alaId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  pisoId       String
+  piso         Piso             @relation(fields: [pisoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  numero       Int
+  nombre       String
+  activo       Boolean          @default(true)
+  horaApertura String           @db.VarChar(5)
+  horaCierre   String           @db.VarChar(5)
+  diasSemana   String           @db.VarChar(7)
+  tramites     BoxTramite[]
+  turnos       Turno[]
+  eventos      TurnoEvento[]
+  empleados    EmpleadoBox[]
+  sesiones     SesionOperador[]
+
+  @@unique([alaId, numero])
+}
+
+model Categoria {
+  id       String    @id @default(uuid())
+  nombre   String
+  icono    String
+  orden    Int
+  activa   Boolean   @default(true)
+  tramites Tramite[]
+}
+
+model Tramite {
+  id                     String       @id @default(uuid())
+  categoriaId            String
+  categoria              Categoria    @relation(fields: [categoriaId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  nombre                 String
+  subtitulo              String
+  icono                  String
+  prefijo                String       @db.VarChar(3)
+  destinoAlaId           String
+  destinoAla             Ala          @relation("TramiteDestinoAla", fields: [destinoAlaId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  destinoPisoId          String
+  destinoPiso            Piso         @relation("TramiteDestinoPiso", fields: [destinoPisoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  horaApertura           String       @db.VarChar(5)
+  horaCierre             String       @db.VarChar(5)
+  diasSemana             String       @db.VarChar(7)
+  duracionMinimaEsperada Int
+  orden                  Int
+  activo                 Boolean      @default(true)
+  boxes                  BoxTramite[]
+  turnos                 Turno[]
+  contadores             Contador[]
+}
+
+model BoxTramite {
+  boxId     String
+  tramiteId String
+  box       Box     @relation(fields: [boxId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tramite   Tramite @relation(fields: [tramiteId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([boxId, tramiteId])
+}
 
 model Turno {
-  id             Int            @id @default(autoincrement())
-  numero         String   
-  servicio       String
-  departamento   String
-  estado         String   @default("esperando")
-  timestamp      DateTime @default(now())
-  boxAsignado    String?  // Se actualiza cuando se llama
-  tiempoLlamado  DateTime?
-  tiempoAtencion Int?     // Se actualiza al finalizar la atención
+  id             String        @id @default(uuid())
+  numero         String        @db.VarChar(10)
+  fecha          DateTime      @db.Date
+  tramiteId      String
+  tramite        Tramite       @relation(fields: [tramiteId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  dni            String?       @db.VarChar(15)
+  nombreAfiliado String?
+  estado         String        @db.VarChar(15)
+  boxId          String?
+  box            Box?          @relation(fields: [boxId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  requestId      String        @unique
+  createdAt      DateTime      @default(now())
+  eventos        TurnoEvento[]
+
+  @@index([fecha, estado])
+  @@index([tramiteId, estado])
+}
+
+model TurnoEvento {
+  id         String    @id @default(uuid())
+  turnoId    String
+  turno      Turno     @relation(fields: [turnoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tipo       String    @db.VarChar(20)
+  boxId      String?
+  box        Box?      @relation(fields: [boxId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  empleadoId String?
+  empleado   Empleado? @relation(fields: [empleadoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  timestamp  DateTime  @default(now())
+  detalle    String?
+
+  @@index([turnoId])
+  @@index([timestamp])
+}
+
+model Contador {
+  id        String   @id @default(uuid())
+  tramiteId String
+  tramite   Tramite  @relation(fields: [tramiteId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  fecha     DateTime @db.Date
+  valor     Int      @default(0)
+
+  @@unique([tramiteId, fecha])
+}
+
+model Empleado {
+  id               String           @id @default(uuid())
+  dniInstitucional String           @unique @db.VarChar(15)
+  nombre           String
+  rol              String           @db.VarChar(15)
+  activo           Boolean          @default(true)
+  boxes            EmpleadoBox[]
+  sesiones         SesionOperador[]
+  eventos          TurnoEvento[]
+}
+
+model EmpleadoBox {
+  empleadoId String
+  boxId      String
+  empleado   Empleado @relation(fields: [empleadoId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  box        Box      @relation(fields: [boxId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([empleadoId, boxId])
+}
+
+model SesionOperador {
+  id           String    @id @default(uuid())
+  empleadoId   String
+  empleado     Empleado  @relation(fields: [empleadoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  boxId        String
+  box          Box       @relation(fields: [boxId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  inicio       DateTime  @default(now())
+  fin          DateTime?
+  ultimoLatido DateTime  @default(now())
+
+  @@index([boxId, fin])
+}
+
+model Kiosco {
+  id                   String    @id
+  nombre               String
+  alaId                String?
+  version              String?
+  ultimoLatido         DateTime?
+  ultimoErrorImpresion String?
 }
