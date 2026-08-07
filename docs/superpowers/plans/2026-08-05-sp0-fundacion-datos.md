@@ -2625,7 +2625,223 @@ git commit -m "refactor: retirar Supabase, la persistencia queda en SQL Server"
 
 ---
 
-## Task 15: Cierre de SP0
+## Task 15: Soporte de derivación entre áreas
+
+> **Agregada después de escribir el plan.** Va al final a propósito: si ya hiciste las tareas 2, 4 y 5,
+> no las rehagas — esta tarea las extiende. Ver §6.7 del spec.
+
+El operador va a poder derivar a un afiliado a otro trámite sin que rehaga la fila del tótem. El
+handler y la interfaz son de SP2; acá va sólo el modelo y la regla de transición, para no necesitar
+una segunda migración más adelante.
+
+**Files:**
+- Modify: `prisma/schema.prisma`
+- Modify: `lib/queue/tipos.ts`
+- Modify: `lib/queue/estado.ts`
+- Test: `tests/unit/estado.test.ts`
+
+- [ ] **Step 1: Escribir el test que falla**
+
+Agregar a `tests/unit/estado.test.ts`:
+
+```typescript
+describe("derivación", () => {
+  it("deriva un turno en atención", () => {
+    const r = transicion({ ...base, estado: "atendiendo", boxId: "b1" }, "derivado", { boxId: "b1" })
+    expect(r.ok).toBe(true)
+    if (r.ok) expect(r.turno.estado).toBe("derivado")
+  })
+
+  it("deriva también un turno recién llamado, antes de iniciar la atención", () => {
+    const r = transicion({ ...base, estado: "llamado", boxId: "b1" }, "derivado", { boxId: "b1" })
+    expect(r.ok).toBe(true)
+  })
+
+  it("no deriva un turno que todavía está esperando", () => {
+    const r = transicion({ ...base }, "derivado", { boxId: "b1" })
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.codigo).toBe("TRANSICION_INVALIDA")
+  })
+
+  it("derivado es terminal: no se sale de ahí", () => {
+    for (const evento of TRANSICIONES.map((t) => t.evento)) {
+      const r = transicion({ ...base, estado: "derivado" }, evento, { boxId: "b1" })
+      expect(r.ok).toBe(false)
+    }
+  })
+
+  it("derivar exige box: es el operador quien deriva", () => {
+    const r = transicion({ ...base, estado: "atendiendo" }, "derivado", {})
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.codigo).toBe("BOX_REQUERIDO")
+  })
+})
+```
+
+- [ ] **Step 2: Correr el test y verificar que falla**
+
+Run: `npx vitest run tests/unit/estado.test.ts`
+Expected: FAIL — el evento `derivado` no existe en `TRANSICIONES`, así que devuelve `EVENTO_DESCONOCIDO`.
+
+- [ ] **Step 3: Agregar el estado y el evento a los tipos**
+
+En `lib/queue/tipos.ts`:
+
+```typescript
+export type EstadoTurno =
+  | "esperando"
+  | "llamado"
+  | "atendiendo"
+  | "finalizado"
+  | "derivado"
+  | "ausente"
+  | "abandonado"
+
+export type TipoEvento =
+  | "generado"
+  | "llamado"
+  | "rellamado"
+  | "ausente"
+  | "iniciado"
+  | "finalizado"
+  | "derivado"
+  | "abandonado"
+```
+
+Y agregar a `TurnoDominio`:
+
+```typescript
+  derivadoDeId: string | null
+```
+
+Los objetos `base` de los tests existentes necesitan `derivadoDeId: null`.
+
+- [ ] **Step 4: Agregar la regla de transición**
+
+En `lib/queue/estado.ts`, dentro de `TRANSICIONES`, antes de `abandonado`:
+
+```typescript
+  { evento: "derivado", desde: ["llamado", "atendiendo"], hacia: "derivado", requiereBox: true },
+```
+
+`derivado` es terminal por construcción: no figura en el `desde` de ninguna regla.
+
+Se acepta desde `llamado` además de `atendiendo` porque el operador suele darse cuenta de que el
+trámite es de otra área apenas la persona se sienta, antes de tocar "Atender".
+
+- [ ] **Step 5: Correr el test y verificar que pasa**
+
+Run: `npx vitest run tests/unit/estado.test.ts`
+Expected: `12 passed` (los 7 originales más los 5 nuevos).
+
+- [ ] **Step 6: Agregar el vínculo al schema**
+
+En `prisma/schema.prisma`, dentro del modelo `Turno`:
+
+```prisma
+  derivadoDeId String?
+  derivadoDe   Turno?  @relation("Derivacion", fields: [derivadoDeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  derivaciones Turno[] @relation("Derivacion")
+```
+
+Es una auto-relación: `onDelete: NoAction` es obligatorio, SQL Server no admite cascada sobre sí misma.
+
+- [ ] **Step 7: Migrar las dos bases**
+
+```bash
+npx prisma migrate dev --name derivacion
+npm run db:test:migrate
+```
+
+Expected: ambas terminan con la migración aplicada.
+
+- [ ] **Step 8: Verificar el modelo con un test**
+
+Crear `tests/integration/derivacion.test.ts`:
+
+```typescript
+import { describe, it, expect, beforeEach } from "vitest"
+import { prisma } from "@/lib/db"
+import { generarTurno } from "@/server/handlers/generarTurno"
+
+beforeEach(async () => {
+  await prisma.turnoEvento.deleteMany()
+  await prisma.turno.deleteMany()
+  await prisma.contador.deleteMany()
+})
+
+describe("modelo de derivación", () => {
+  it("el turno derivado conserva número y hora, y no toca el contador destino", async () => {
+    const origenTramite = await prisma.tramite.findFirstOrThrow({ where: { nombre: "Planes Especiales" } })
+    const destinoTramite = await prisma.tramite.findFirstOrThrow({ where: { nombre: "Bioquímica" } })
+
+    const r = await generarTurno({ tramiteId: origenTramite.id, dni: null, requestId: "orig-1" })
+    if (!r.ok) throw new Error("no se pudo generar")
+
+    const derivado = await prisma.turno.create({
+      data: {
+        numero: r.turno.numero,
+        fecha: r.turno.fecha,
+        createdAt: r.turno.createdAt,
+        tramiteId: destinoTramite.id,
+        dni: r.turno.dni,
+        estado: "esperando",
+        requestId: `derivacion-${r.turno.id}`,
+        derivadoDeId: r.turno.id,
+      },
+    })
+
+    expect(derivado.numero).toBe(r.turno.numero)
+    expect(derivado.createdAt.getTime()).toBe(r.turno.createdAt.getTime())
+
+    // El contador de Bioquimica sigue en cero: la derivacion no consume numero.
+    const contadorDestino = await prisma.contador.findFirst({
+      where: { tramiteId: destinoTramite.id },
+    })
+    expect(contadorDestino).toBeNull()
+  })
+
+  it("se puede recorrer la cadena de derivación", async () => {
+    const t = await prisma.tramite.findFirstOrThrow({ where: { nombre: "Planes Especiales" } })
+    const r = await generarTurno({ tramiteId: t.id, dni: null, requestId: "orig-2" })
+    if (!r.ok) throw new Error("no se pudo generar")
+
+    await prisma.turno.create({
+      data: {
+        numero: r.turno.numero,
+        fecha: r.turno.fecha,
+        createdAt: r.turno.createdAt,
+        tramiteId: t.id,
+        estado: "esperando",
+        requestId: `derivacion-${r.turno.id}`,
+        derivadoDeId: r.turno.id,
+      },
+    })
+
+    const origen = await prisma.turno.findUniqueOrThrow({
+      where: { id: r.turno.id },
+      include: { derivaciones: true },
+    })
+    expect(origen.derivaciones).toHaveLength(1)
+  })
+})
+```
+
+- [ ] **Step 9: Correr el test y verificar que pasa**
+
+Run: `npx vitest run tests/integration/derivacion.test.ts`
+Expected: `2 passed`
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add prisma/schema.prisma prisma/migrations lib/queue/tipos.ts lib/queue/estado.ts tests/unit/estado.test.ts tests/integration/derivacion.test.ts
+git commit -m "feat: modelo y transición de derivación entre áreas"
+```
+
+---
+
+## Task 16: Cierre de SP0
 
 - [ ] **Step 1: Verificación completa**
 
@@ -2680,5 +2896,13 @@ git commit -m "chore: cerrar SP0 y actualizar el grafo del repositorio"
 | §10.1 unitarios de los tres módulos puros | 5, 6, 7 |
 | §10.2 concurrencia, idempotencia, llamado (contra SQL Server real) | 10, 11 |
 | §10.3 aislamiento por ala | 13 |
+| §6.7 modelo y transición de derivación | 15 |
 
-**Fuera de este plan, va en SP2:** `rellamarTurno`, `marcarAusente`, `iniciarAtencion`, `finalizarAtencion`, `SesionOperador` con latido, job diario de abandonados, job de retención de DNI. La máquina de estados de la Tarea 5 ya los contempla; falta el handler y la UI.
+**Fuera de este plan, va en SP2:** `rellamarTurno`, `marcarAusente`, `iniciarAtencion`,
+`finalizarAtencion`, **`derivarTurno`**, `SesionOperador` con latido, job diario de abandonados, job
+de retención de DNI. La máquina de estados de las Tareas 5 y 15 ya los contempla; faltan el handler
+y la interfaz.
+
+El handler `derivarTurno` de SP2 hace, en una sola transacción: transición del origen a `derivado`,
+evento `derivado` con el trámite destino, e `INSERT` del turno nuevo con el mismo `numero`, `fecha` y
+`createdAt`, `derivadoDeId` al origen y **sin tocar el contador del destino**.

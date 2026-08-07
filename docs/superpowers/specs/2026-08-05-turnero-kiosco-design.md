@@ -136,7 +136,7 @@ El panel del operador nunca se bloquea por horario: los turnos en cola se atiend
 
 | Modelo | Campos clave | Nota |
 |---|---|---|
-| `Turno` | `numero`, `fecha`, `tramiteId`, `dni`, `nombreAfiliado?`, `estado`, `boxId?`, `requestId`, `createdAt` | `estado`: `esperando · llamado · atendiendo · finalizado · ausente · abandonado` |
+| `Turno` | `numero`, `fecha`, `tramiteId`, `dni`, `nombreAfiliado?`, `estado`, `boxId?`, `requestId`, `derivadoDeId?`, `createdAt` | `estado`: `esperando · llamado · atendiendo · finalizado · derivado · ausente · abandonado` |
 
 `fecha` y `createdAt` no son lo mismo y conviene no confundirlos: `fecha` es el **día hábil** (`DATE`), y es
 lo que participa del `unique` del contador; `createdAt` es el **instante exacto** (`DATETIME2`) y es lo que se
@@ -233,7 +233,46 @@ Un **job diario** marca `abandonado` todo lo que quedó en `esperando`. Corre a 
 (`HORA_CIERRE_DIARIO`, por defecto 23:00), no al cerrar el último box — porque "cerrado" sólo detiene la
 emisión de tickets y los turnos en cola se siguen atendiendo después del horario (§5.2).
 
-### 6.7 Productividad
+### 6.7 Derivación entre áreas
+
+El operador puede derivar a un afiliado a otro trámite del catálogo sin que vuelva a hacer la fila del
+tótem. **No se imprime nada**: la persona conserva el ticket que ya tiene.
+
+**El número no cambia.** Un `P01` derivado a Bioquímica sigue siendo `P01` en la pantalla de
+Bioquímica, con una marca visual de derivado. Es lo que hace válido el papel que la persona tiene en
+la mano, que es el motivo entero de no imprimir. Como consecuencia, **la derivación no toca el
+contador del trámite destino**: si lo incrementara, la serie `B` saltearía números.
+
+**La posición en la cola sale sola.** El turno derivado conserva su `createdAt` original, así que la
+FIFO de `seleccion.ts` lo ubica delante de todos los que llegaron después, sin lógica de prioridad ni
+reglas nuevas. Y es justo: esa persona está en el edificio desde que sacó el primer turno.
+
+**Modelo.** La derivación crea un **turno nuevo**, no muta el original:
+
+| Turno | Qué pasa |
+|---|---|
+| Origen | Pasa a estado `derivado` (terminal, distinto de `finalizado`) y se le escribe el evento `derivado` con el trámite destino |
+| Nuevo | Se crea en `esperando`, con el **mismo `numero`, `fecha` y `createdAt`**, el `tramiteId` destino, y `derivadoDeId` apuntando al origen |
+
+Dos filas en vez de una mutación, porque así las estadísticas quedan limpias: el origen cuenta como
+atención del box A —con su tiempo real, medido de `iniciado` a `derivado`— y el destino cuenta como
+entrada a la cola del área nueva. Mutando el `tramiteId` se perdería el trabajo del primer box.
+
+**El aviso es verbal.** La pantalla del operador muestra ala, piso y área destino en grande para que
+los lea en voz alta. Sin papel y sin hardware adicional.
+
+**Derivación en cadena** (A → B → C) está permitida; `derivadoDeId` la encadena. El panel del
+supervisor marca las cadenas de tres o más, porque suelen indicar que nadie sabe de quién es el trámite.
+
+**El dato que esto regala.** Cada derivación es un evento con origen y destino. La tasa de derivación
+por par de trámites es el mejor diagnóstico disponible de la arquitectura de información del kiosco:
+si un tercio de los turnos de "Otros Procesos Médicos" termina derivado a "Prótesis", el problema no
+está en los operadores sino en cómo pregunta el paso ③. Va al dashboard de SP5.
+
+**Alcance:** el modelo y la máquina de estados van en **SP0**; el handler y la interfaz del operador
+van en **SP2**; la marca de derivado en las pantallas, en **SP3**; la métrica, en **SP5**.
+
+### 6.8 Productividad
 
 Se elimina el filtro de 7 minutos al escribir. Se guarda todo y se clasifica al consultar:
 

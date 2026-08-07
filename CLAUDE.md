@@ -14,8 +14,18 @@ Leé en este orden:
 
 1. **`docs/superpowers/specs/2026-08-05-turnero-kiosco-design.md`** — el diseño aprobado. Decisiones
    cerradas, diagnóstico del código actual, modelo de datos, UI, hardening, errores y testing.
-2. **`docs/superpowers/plans/2026-08-05-sp0-fundacion-datos.md`** — 15 tareas. **Se ejecuta primero.**
+2. **`docs/superpowers/plans/2026-08-05-sp0-fundacion-datos.md`** — 16 tareas. **Se ejecuta primero.**
 3. **`docs/superpowers/plans/2026-08-05-sp1-kiosco-v2.md`** — 14 tareas. Requiere SP0 terminado.
+
+### Sin conexión a la base todavía
+
+Se puede avanzar bastante igual. **No necesitan base:** SP0 tareas 4, 5, 6, 7, 9 y 12 (módulos puros
+y repositorio de afiliados con su stub), y SP1 tareas 1, 3, 5, 6, 8, 9 y 11.
+
+Para desbloquear el resto de SP1 sin base, `lib/catalogo/fixture.ts` sirve el mismo catálogo del seed
+como objeto estático con `CATALOGO_FIXTURE=on`. **Nunca aplicar el fixture a los tests de
+integración:** las tareas 10, 11 y 13 de SP0 prueban `MERGE ... WITH (HOLDLOCK)` y transiciones
+condicionadas, que un objeto en memoria no reproduce. Esas quedan pendientes hasta que haya conexión.
 
 Para ejecutarlos usá `superpowers:subagent-driven-development` (recomendado) o
 `superpowers:executing-plans`. Los pasos tienen checkboxes para ir marcando.
