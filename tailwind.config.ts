@@ -10,7 +10,31 @@ const config: Config = {
   ],
   theme: {
   	extend: {
+  		fontFamily: {
+  			titulo: ['var(--fuente-titulo)', 'sans-serif'],
+  			cuerpo: ['var(--fuente-cuerpo)', 'sans-serif'],
+  		},
+  		fontSize: {
+  			'k-turno': ['220px', { lineHeight: '1', fontWeight: '700' }],
+  			'k-pregunta': ['56px', { lineHeight: '1.2', fontWeight: '600' }],
+  			'k-titulo': ['36px', { lineHeight: '1.3', fontWeight: '600' }],
+  			'k-sub': ['24px', { lineHeight: '1.5', fontWeight: '400' }],
+  			'k-tecla': ['48px', { lineHeight: '1', fontWeight: '600' }],
+  		},
+  		spacing: {
+  			'k-gap': '24px',
+  			'k-tarjeta': '440px',
+  			'k-tarjeta-alto': '340px',
+  		},
   		colors: {
+  			gris: {
+  				20: 'var(--gris-20)',
+  				70: 'var(--gris-70)',
+  				80: 'var(--gris-80)',
+  				principal: 'var(--gris-principal)',
+  			},
+  			gainsboro: 'var(--gainsboro)',
+  			osp: 'var(--osp)',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

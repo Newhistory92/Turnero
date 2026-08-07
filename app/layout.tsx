@@ -1,11 +1,23 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Figtree, Noto_Sans } from "next/font/google"
 import "./globals.css"
 import { SocketProvider } from "@/lib/turno-context"
 import { SupabaseStatus } from "@/components/supabase-status"
 
-const inter = Inter({ subsets: ["latin"] })
+const figtree = Figtree({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--fuente-titulo",
+  display: "swap",
+})
+
+const notoSans = Noto_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--fuente-cuerpo",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: "Sistema de Gestión de Turnos",
@@ -19,7 +31,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className={inter.className}>
+      <body className={`${figtree.variable} ${notoSans.variable}`}>
         <SocketProvider>
           {children}
           <SupabaseStatus />
