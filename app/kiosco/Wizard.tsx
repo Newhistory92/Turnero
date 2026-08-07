@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
+import { crearTemporizadorInactividad } from "@/lib/kiosco/inactividad"
 
 export interface TramiteVista {
   id: string
@@ -52,6 +53,30 @@ export function Wizard({ categorias }: { categorias: CategoriaVista[] }) {
     })
   }, [])
 
+  const [avisoInactividad, setAvisoInactividad] = useState(false)
+
+  useEffect(() => {
+    const temporizador = crearTemporizadorInactividad({
+      onAviso: () => setAvisoInactividad(true),
+      onExpirar: () => {
+        setAvisoInactividad(false)
+        reiniciar()
+      },
+    })
+    temporizador.iniciar()
+
+    const actividad = () => {
+      setAvisoInactividad(false)
+      temporizador.registrarActividad()
+    }
+    window.addEventListener("pointerdown", actividad)
+
+    return () => {
+      window.removeEventListener("pointerdown", actividad)
+      temporizador.detener()
+    }
+  }, [reiniciar])
+
   return (
     <div
       className="flex h-full flex-col"
@@ -59,6 +84,24 @@ export function Wizard({ categorias }: { categorias: CategoriaVista[] }) {
       data-testid="wizard"
     >
       {/* Los pasos se agregan en las tareas 3 a 7 */}
+
+      {avisoInactividad && (
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black/60"
+          data-testid="aviso-inactividad"
+        >
+          <div className="flex flex-col items-center gap-8 rounded-3xl bg-white p-16 text-center">
+            <p className="text-k-titulo font-titulo">¿Sigue ahí?</p>
+            <button
+              type="button"
+              onClick={() => setAvisoInactividad(false)}
+              className="rounded-2xl bg-gris-principal px-12 py-6 text-k-sub text-white"
+            >
+              Sí, continuar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
