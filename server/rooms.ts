@@ -1,0 +1,60 @@
+export type EventoTurnero =
+  | "TURNO_GENERADO"
+  | "TURNO_LLAMADO"
+  | "TURNO_RELLAMADO"
+  | "TURNO_AUSENTE"
+  | "TURNO_INICIADO"
+  | "TURNO_FINALIZADO"
+  | "CATALOGO_ACTUALIZADO"
+
+export interface ContextoEvento {
+  ala: string
+  piso: string
+  boxId: string | null
+  tramiteBoxIds: string[]
+}
+
+const slug = (s: string) =>
+  s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, "-")
+
+export const ROOM_KIOSCO = "kiosco"
+export const ROOM_ADMIN = "admin"
+export const TODOS = "*"
+
+export const roomAla = (ala: string) => `ala:${slug(ala)}`
+export const roomPisoAla = (piso: string, ala: string) =>
+  `piso:${slug(piso)}:ala:${slug(ala)}`
+export const roomBox = (boxId: string) => `box:${boxId}`
+
+/** A que rooms se emite cada evento. Unico lugar donde vive esa decision. */
+export function destinatarios(
+  evento: EventoTurnero,
+  ctx: ContextoEvento
+): string[] {
+  if (evento === "CATALOGO_ACTUALIZADO") return [TODOS]
+
+  const rooms = new Set<string>([ROOM_ADMIN])
+
+  switch (evento) {
+    case "TURNO_GENERADO":
+      rooms.add(ROOM_KIOSCO)
+      ctx.tramiteBoxIds.forEach((id) => rooms.add(roomBox(id)))
+      break
+
+    case "TURNO_LLAMADO":
+    case "TURNO_RELLAMADO":
+      rooms.add(roomAla(ctx.ala))
+      rooms.add(roomPisoAla(ctx.piso, ctx.ala))
+      if (ctx.boxId) rooms.add(roomBox(ctx.boxId))
+      break
+
+    case "TURNO_AUSENTE":
+    case "TURNO_INICIADO":
+    case "TURNO_FINALIZADO":
+      if (ctx.boxId) rooms.add(roomBox(ctx.boxId))
+      ctx.tramiteBoxIds.forEach((id) => rooms.add(roomBox(id)))
+      break
+  }
+
+  return [...rooms]
+}
