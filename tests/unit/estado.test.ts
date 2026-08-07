@@ -9,6 +9,7 @@ const base: TurnoDominio = {
   estado: "esperando",
   boxId: null,
   createdAt: new Date("2026-08-05T10:00:00Z"),
+  derivadoDeId: null,
 }
 
 describe("transicion", () => {
@@ -57,5 +58,37 @@ describe("transicion", () => {
     expect(
       transicion({ ...base, estado: "atendiendo" }, "abandonado", {}).ok
     ).toBe(false)
+  })
+})
+
+describe("derivación", () => {
+  it("deriva un turno en atención", () => {
+    const r = transicion({ ...base, estado: "atendiendo", boxId: "b1" }, "derivado", { boxId: "b1" })
+    expect(r.ok).toBe(true)
+    if (r.ok) expect(r.turno.estado).toBe("derivado")
+  })
+
+  it("deriva también un turno recién llamado, antes de iniciar la atención", () => {
+    const r = transicion({ ...base, estado: "llamado", boxId: "b1" }, "derivado", { boxId: "b1" })
+    expect(r.ok).toBe(true)
+  })
+
+  it("no deriva un turno que todavía está esperando", () => {
+    const r = transicion({ ...base }, "derivado", { boxId: "b1" })
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.codigo).toBe("TRANSICION_INVALIDA")
+  })
+
+  it("derivado es terminal: no se sale de ahí", () => {
+    for (const evento of TRANSICIONES.map((t) => t.evento)) {
+      const r = transicion({ ...base, estado: "derivado" }, evento, { boxId: "b1" })
+      expect(r.ok).toBe(false)
+    }
+  })
+
+  it("derivar exige box: es el operador quien deriva", () => {
+    const r = transicion({ ...base, estado: "atendiendo" }, "derivado", {})
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.codigo).toBe("BOX_REQUERIDO")
   })
 })

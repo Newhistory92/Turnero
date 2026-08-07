@@ -14,6 +14,7 @@ export const TRANSICIONES: Regla[] = [
   { evento: "ausente", desde: ["llamado"], hacia: "ausente", requiereBox: false },
   { evento: "iniciado", desde: ["llamado"], hacia: "atendiendo", requiereBox: true },
   { evento: "finalizado", desde: ["atendiendo"], hacia: "finalizado", requiereBox: false },
+  { evento: "derivado", desde: ["llamado", "atendiendo"], hacia: "derivado", requiereBox: true },
   { evento: "abandonado", desde: ["esperando"], hacia: "abandonado", requiereBox: false },
 ]
 

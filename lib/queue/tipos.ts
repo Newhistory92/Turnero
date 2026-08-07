@@ -3,6 +3,7 @@ export type EstadoTurno =
   | "llamado"
   | "atendiendo"
   | "finalizado"
+  | "derivado"
   | "ausente"
   | "abandonado"
 
@@ -13,6 +14,7 @@ export type TipoEvento =
   | "ausente"
   | "iniciado"
   | "finalizado"
+  | "derivado"
   | "abandonado"
 
 export interface TurnoDominio {
@@ -22,6 +24,7 @@ export interface TurnoDominio {
   estado: EstadoTurno
   boxId: string | null
   createdAt: Date
+  derivadoDeId: string | null
 }
 
 export interface HorarioDominio {
