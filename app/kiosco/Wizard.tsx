@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { crearTemporizadorInactividad } from "@/lib/kiosco/inactividad"
+import { aplicarHardening } from "@/lib/kiosco/hardening"
 
 export interface TramiteVista {
   id: string
@@ -52,6 +53,8 @@ export function Wizard({ categorias }: { categorias: CategoriaVista[] }) {
       return p
     })
   }, [])
+
+  useEffect(() => aplicarHardening(), [])
 
   const [avisoInactividad, setAvisoInactividad] = useState(false)
 
