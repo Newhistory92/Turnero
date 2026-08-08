@@ -59,6 +59,24 @@ describe("transicion", () => {
       transicion({ ...base, estado: "atendiendo" }, "abandonado", {}).ok
     ).toBe(false)
   })
+
+  it("finaliza un turno que está siendo atendido", () => {
+    const r = transicion({ ...base, estado: "atendiendo" }, "finalizado", {})
+    expect(r.ok).toBe(true)
+    if (r.ok) expect(r.turno.estado).toBe("finalizado")
+  })
+
+  it("rechaza finalizar un turno que no está siendo atendido", () => {
+    const r = transicion({ ...base, estado: "esperando" }, "finalizado", {})
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.codigo).toBe("TRANSICION_INVALIDA")
+  })
+
+  it("rechaza un evento desconocido", () => {
+    const r = transicion({ ...base }, "algo_invalido" as any, {})
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.codigo).toBe("EVENTO_DESCONOCIDO")
+  })
 })
 
 describe("derivación", () => {

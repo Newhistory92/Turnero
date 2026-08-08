@@ -41,6 +41,48 @@ function unir(a: Ventana, b: Ventana): Ventana {
   }
 }
 
+/**
+ * Agrupa intersecciones contiguas o solapadas entre si, sin unir jamas dos
+ * grupos separados por un hueco sin cobertura, y devuelve el grupo relevante
+ * para "minutos": el que lo contiene o, si ninguno lo contiene, el mas
+ * cercano en el tiempo. Es la unica funcion que decide que ventana se le
+ * muestra al usuario, para que nunca "abarque" un hueco entre boxes que
+ * individualmente no se solapan entre si.
+ */
+function ventanaEfectivaParaMostrar(intersecciones: Ventana[], minutos: number): Ventana | null {
+  if (intersecciones.length === 0) return null
+
+  const ordenadas = [...intersecciones].sort((a, b) => aMinutos(a.desde) - aMinutos(b.desde))
+  const grupos: Ventana[] = []
+  for (const v of ordenadas) {
+    const ultimo = grupos[grupos.length - 1]
+    if (ultimo && aMinutos(v.desde) <= aMinutos(ultimo.hasta)) {
+      grupos[grupos.length - 1] = unir(ultimo, v)
+    } else {
+      grupos.push(v)
+    }
+  }
+
+  const contiene = grupos.find((g) => minutos >= aMinutos(g.desde) && minutos < aMinutos(g.hasta))
+  if (contiene) return contiene
+
+  return grupos.reduce((cercano, g) => {
+    const distancia = Math.min(
+      Math.abs(aMinutos(g.desde) - minutos),
+      Math.abs(aMinutos(g.hasta) - minutos)
+    )
+    const distanciaCercano = Math.min(
+      Math.abs(aMinutos(cercano.desde) - minutos),
+      Math.abs(aMinutos(cercano.hasta) - minutos)
+    )
+    return distancia < distanciaCercano ? g : cercano
+  })
+}
+
+// Los calculos de dia/hora dependen de que el proceso de Node corra en hora
+// local de America/Argentina/San_Juan (no hay horario de verano). Esto debe
+// garantizarse al arrancar el proceso (p. ej. con la variable de entorno TZ);
+// esta funcion no lo verifica ni lo corrige, solo asume que ya se cumple.
 export function estaDisponible(
   tramite: TramiteDominio,
   boxes: BoxDominio[],
@@ -62,28 +104,45 @@ export function estaDisponible(
     hasta: tramite.horaCierre,
   }
 
-  // Ventana efectiva = union de las intersecciones tramite x cada box.
-  let efectiva: Ventana | null = null
-  for (const b of boxesUtiles) {
+  // Chequeo estructural: existe al menos un box activo (de cualquier dia)
+  // cuyo horario se solape con el del tramite. Si no, el tramite nunca
+  // podria emitirse con la configuracion actual, sin importar el dia.
+  const haySolapeEstructural = boxesUtiles.some((b) =>
+    intersectar(ventanaTramite, { desde: b.horaApertura, hasta: b.horaCierre })
+  )
+
+  if (!haySolapeEstructural) {
+    return { disponible: false, ventanaEfectiva: null, motivo: "sin_boxes" }
+  }
+
+  // Solo los boxes activos Y abiertos hoy pueden aportar horas reales: un
+  // box que hoy no trabaja no debe sumar su franja a la ventana efectiva ni
+  // habilitar el tramite, aunque otro box (que hoy no trabaja) tenga horas
+  // que si se solapan.
+  const boxesHoy = boxesUtiles.filter((b) => b.diasSemana.includes(dia))
+
+  const intersecciones: Ventana[] = []
+  for (const b of boxesHoy) {
     const cruce = intersectar(ventanaTramite, {
       desde: b.horaApertura,
       hasta: b.horaCierre,
     })
-    if (!cruce) continue
-    efectiva = efectiva ? unir(efectiva, cruce) : cruce
+    if (cruce) intersecciones.push(cruce)
   }
 
-  if (!efectiva) {
-    return { disponible: false, ventanaEfectiva: null, motivo: "sin_boxes" }
-  }
-
-  const habilitaHoy =
-    tramite.diasSemana.includes(dia) &&
-    boxesUtiles.some((b) => b.diasSemana.includes(dia))
+  const habilitaHoy = tramite.diasSemana.includes(dia) && intersecciones.length > 0
 
   const minutos = ahoraEnMinutos(ahora)
-  const dentro =
-    minutos >= aMinutos(efectiva.desde) && minutos < aMinutos(efectiva.hasta)
+  // La disponibilidad real sale de si "ahora" cae dentro de la franja de
+  // ALGUN box individual, nunca de un envolvente unido (que podria mentir
+  // sobre huecos sin cobertura).
+  const dentro = intersecciones.some(
+    (v) => minutos >= aMinutos(v.desde) && minutos < aMinutos(v.hasta)
+  )
+
+  // Ventana efectiva para mostrarle al usuario cuando esta cerrado. Nunca
+  // "abarca" un hueco entre boxes que individualmente no se solapan entre si.
+  const efectiva = ventanaEfectivaParaMostrar(intersecciones, minutos)
 
   if (!habilitaHoy || !dentro) {
     return { disponible: false, ventanaEfectiva: efectiva, motivo: "fuera_de_horario" }

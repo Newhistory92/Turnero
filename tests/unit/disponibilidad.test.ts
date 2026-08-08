@@ -75,4 +75,77 @@ describe("estaDisponible", () => {
     expect(r.disponible).toBe(true)
     expect(r.ventanaEfectiva).toEqual({ desde: "08:00", hasta: "13:00" })
   })
+
+  it("no emite si el box está activo pero su horario no se solapa con el del trámite", () => {
+    const sinSolape: BoxDominio = { ...box, horaApertura: "14:00", horaCierre: "15:00" }
+    const r = estaDisponible(tramite, [sinSolape], miercoles("14:30"))
+    expect(r.disponible).toBe(false)
+    expect(r.motivo).toBe("sin_boxes")
+    expect(r.ventanaEfectiva).toBeNull()
+  })
+
+  it("no emite si el único box con horas solapadas no trabaja hoy (bug de correlación día/horario)", () => {
+    // Box A: solapa totalmente con el trámite, pero no trabaja los lunes.
+    const boxA: BoxDominio = {
+      ...box,
+      id: "boxA",
+      horaApertura: "08:00",
+      horaCierre: "17:00",
+      diasSemana: "23456", // martes a sábado
+    }
+    // Box B: trabaja los lunes, pero sus horas no se solapan con el trámite.
+    const boxB: BoxDominio = {
+      ...box,
+      id: "boxB",
+      horaApertura: "20:00",
+      horaCierre: "21:00",
+      diasSemana: "123456", // lunes a sábado
+    }
+    // 2026-08-03 es lunes (día ISO 1): boxA cerrado, boxB abierto pero sin horas útiles.
+    const lunes = new Date("2026-08-03T10:00:00")
+    const r = estaDisponible(tramite, [boxA, boxB], lunes)
+    expect(r.disponible).toBe(false)
+  })
+
+  it("no emite en el hueco entre dos boxes con horarios no contiguos (bug de merge de ventanas)", () => {
+    const boxA: BoxDominio = {
+      ...box,
+      id: "boxA",
+      horaApertura: "08:00",
+      horaCierre: "09:00",
+    }
+    const boxB: BoxDominio = {
+      ...box,
+      id: "boxB",
+      horaApertura: "11:00",
+      horaCierre: "12:00",
+    }
+    const enElHueco = estaDisponible(tramite, [boxA, boxB], miercoles("10:00"))
+    expect(enElHueco.disponible).toBe(false)
+
+    const dentroDeA = estaDisponible(tramite, [boxA, boxB], miercoles("08:30"))
+    expect(dentroDeA.disponible).toBe(true)
+
+    const dentroDeB = estaDisponible(tramite, [boxA, boxB], miercoles("11:30"))
+    expect(dentroDeB.disponible).toBe(true)
+  })
+
+  it("la ventana efectiva nunca abarca el hueco entre boxes no contiguos", () => {
+    const boxA: BoxDominio = { ...box, id: "boxA", horaApertura: "08:00", horaCierre: "09:00" }
+    const boxB: BoxDominio = { ...box, id: "boxB", horaApertura: "11:00", horaCierre: "12:00" }
+
+    // En el hueco (10:00): la ventana mostrada es la mas cercana, nunca
+    // 08:00-12:00 (eso implicaria cobertura falsa entre 09:00 y 11:00).
+    const enElHueco = estaDisponible(tramite, [boxA, boxB], miercoles("10:00"))
+    expect(enElHueco.ventanaEfectiva).not.toEqual({ desde: "08:00", hasta: "12:00" })
+    expect(enElHueco.ventanaEfectiva).toEqual({ desde: "08:00", hasta: "09:00" })
+
+    // Dentro de A: la ventana mostrada es la de A, no la union con B.
+    const dentroDeA = estaDisponible(tramite, [boxA, boxB], miercoles("08:30"))
+    expect(dentroDeA.ventanaEfectiva).toEqual({ desde: "08:00", hasta: "09:00" })
+
+    // Dentro de B: la ventana mostrada es la de B, no la union con A.
+    const dentroDeB = estaDisponible(tramite, [boxA, boxB], miercoles("11:30"))
+    expect(dentroDeB.ventanaEfectiva).toEqual({ desde: "11:00", hasta: "12:00" })
+  })
 })
