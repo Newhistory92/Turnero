@@ -36,6 +36,34 @@ Para ejecutarlos usá `superpowers:subagent-driven-development` (recomendado) o
 npx graphify .
 ```
 
+## Estado real al 2026-08-07
+
+Todo vive en **`main`**, pusheado. No hay ramas de trabajo activas.
+
+**SP0 — hecho:** tareas 1 (Vitest + guarda), 2 (schema y `lib/db.ts`, **sin migrar**), 4 (tipos),
+5 (máquina de estados), 6 (disponibilidad, con dos correcciones), 7 (FIFO), 8 (catálogo + fixture),
+9 (repositorio de afiliados), 12 (rooms), y los pasos 1-5 de la 15 (estado y transición de derivación).
+
+**SP1 — hecho:** tareas 1 (tokens y contraste), 2 (shell del wizard), 3 (teclado numérico),
+5 (tarjetas y pasos ② ③), 6 (impresión por iframe), 8 (inactividad), 9 (hardening), 11 (scripts del tótem).
+
+**Bloqueado por falta de `DATABASE_URL`:**
+SP0 tareas 3, 10, 11, 13, 14, 16 y los pasos 6-9 de la 15 · SP1 tareas 4, 7, 10, 12, 13, 14.
+
+Archivos que el plan pide y **todavía no existen**: `prisma/seed.ts`, `server/index.ts`,
+`server/handlers/`, `app/api/afiliados/`, `app/kiosco/pasos/PasoDni.tsx`,
+`app/kiosco/pasos/PasoResultado.tsx`, `lib/kiosco/latido.ts`.
+
+**Verificación actual:** `npm run test:unit` → 73 tests, 10 archivos, todos en verde. No hay tests de
+integración corriendo porque ninguno puede: necesitan SQL Server.
+
+**Para retomar:** conseguir el `DATABASE_URL` y arrancar por la tarea 2 de SP0 (`prisma migrate dev`),
+de la que dependen todas las demás bloqueadas.
+
+> El `graphify-out/` versionado es **anterior a todo este trabajo**. Describe módulos que ya no
+> existen (Supabase) y no conoce los que sí (`lib/queue/`, `lib/catalogo/`, `app/kiosco/`).
+> Regeneralo con `npx graphify .` antes de confiar en él.
+
 ## El grafo del repositorio
 
 `graphify-out/` tiene el grafo de conocimiento del código. Si necesitás entender cómo se relaciona
