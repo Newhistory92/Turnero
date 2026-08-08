@@ -1,0 +1,20 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome]
+"DeveloperToolsAvailability"=dword:00000002
+"IncognitoModeAvailability"=dword:00000001
+"BrowserSignin"=dword:00000000
+"PasswordManagerEnabled"=dword:00000000
+"TranslateEnabled"=dword:00000000
+"BookmarkBarEnabled"=dword:00000000
+"PrintingEnabled"=dword:00000001
+"RestoreOnStartup"=dword:00000004
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome\URLBlocklist]
+"1"="*"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome\URLAllowlist]
+"1"="http://servidor:3000"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome\RestoreOnStartupURLs]
+"1"="http://servidor:3000/kiosco"
