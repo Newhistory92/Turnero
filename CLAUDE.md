@@ -64,6 +64,47 @@ de la que dependen todas las demás bloqueadas.
 > existen (Supabase) y no conoce los que sí (`lib/queue/`, `lib/catalogo/`, `app/kiosco/`).
 > Regeneralo con `npx graphify .` antes de confiar en él.
 
+## SP2: dónde quedó el brainstorming
+
+**No hay spec de SP2 todavía.** El diseño se cortó a propósito en la pregunta de autenticación, para
+no seguir conjeturando sin ver la base de la obra social. Retomar con `superpowers:brainstorming`.
+
+**Decidido:** los operadores entran con **usuario y contraseña de la base de la obra social**, la
+misma credencial que ya usan en el sistema interno. No se crea un usuario nuevo para el turnero.
+
+**Recomendación pendiente de confirmar con la base a la vista** — importar la persona, nunca la
+credencial:
+
+- A `Empleado` se traen usuario, DNI, nombre y legajo. Necesarios para asignar boxes, permisos y
+  estadísticas.
+- La contraseña (ni su hash) **no se copia**. Se valida en vivo contra la base de la obra social en
+  cada login. Si se copiara: se desincroniza cuando la cambian, un empleado dado de baja seguiría
+  entrando hasta la próxima sincronización, y el turnero pasaría a contener credenciales del sistema
+  principal — convirtiéndose en el eslabón por el que se entra a lo demás.
+
+**Lo primero que hay que averiguar en la PC con acceso:**
+
+1. **¿Cómo se valida una credencial?** ¿Hay un stored procedure o una API que reciba usuario y
+   contraseña y devuelva sí/no (lo ideal: nunca vemos el hash), o hay que leer la columna del hash y
+   verificar acá? Si es lo segundo: **qué algoritmo** (bcrypt, PBKDF2, SHA-256 con salt, MD5) y si hay
+   columna de salt aparte.
+2. **¿Qué es el "usuario"?** ¿El DNI, el legajo, o un nombre de usuario aparte tipo `jperez`?
+3. **¿Qué tabla y columnas** tienen los empleados, y si hay un campo de estado (activo/baja) que
+   permita no importar a los que ya no trabajan.
+
+Mientras no se sepa, el diseño previsto es una interfaz `AutenticadorEmpleados` con
+`validar(usuario, contraseña)` y una implementación stub, para que enchufar la real sea cambiar una
+clase.
+
+**Alcance de SP2:** panel de operador y motor de cola — llamar, rellamar, marcar ausente, iniciar
+atención, finalizar, y **el handler `derivarTurno` con su interfaz** (el modelo y la transición ya
+están hechos, ver §6.7 del spec). Más `SesionOperador` con latido, el job diario de abandonados y el
+job de retención de DNI.
+
+**Preguntas de diseño que quedaron sin hacer**, para retomar después de la autenticación: qué
+dispositivo usa el operador (PC de escritorio o tablet), si una persona puede cubrir más de un box a
+la vez, y si el panel muestra la cola completa o sólo el siguiente turno.
+
 ## El grafo del repositorio
 
 `graphify-out/` tiene el grafo de conocimiento del código. Si necesitás entender cómo se relaciona

@@ -640,3 +640,6 @@ Bloquean partes de la implementación, no el plan:
 5. **Estructura real y definitiva de trámites por box**, para el seed inicial.
 6. **Host y puerto definitivos del servidor.** `http://servidor:3000` es un ejemplo en §8.2 y §8.3; la
    `URLAllowlist` de Chrome tiene que llevar la URL real o el kiosco no carga nada.
+7. **Cómo validar credenciales de empleado** contra la base de la obra social (stored procedure, API,
+   o lectura del hash y con qué algoritmo), qué es el "usuario", y qué tabla y columnas tienen los
+   empleados. Bloquea el diseño de SP2, no de SP0 ni SP1. Ver la sección "SP2" de `CLAUDE.md`.
