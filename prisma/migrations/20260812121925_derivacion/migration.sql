@@ -1,0 +1,22 @@
+BEGIN TRY
+
+BEGIN TRAN;
+
+-- AlterTable
+ALTER TABLE [dbo].[Turno] ADD [derivadoDeId] NVARCHAR(1000);
+
+-- AddForeignKey
+ALTER TABLE [dbo].[Turno] ADD CONSTRAINT [Turno_derivadoDeId_fkey] FOREIGN KEY ([derivadoDeId]) REFERENCES [dbo].[Turno]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+COMMIT TRAN;
+
+END TRY
+BEGIN CATCH
+
+IF @@TRANCOUNT > 0
+BEGIN
+    ROLLBACK TRAN;
+END;
+THROW
+
+END CATCH

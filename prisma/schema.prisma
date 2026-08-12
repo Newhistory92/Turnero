@@ -115,6 +115,9 @@ model Turno {
   requestId      String        @unique
   createdAt      DateTime      @default(now())
   eventos        TurnoEvento[]
+  derivadoDeId   String?
+  derivadoDe     Turno?        @relation("Derivacion", fields: [derivadoDeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  derivaciones   Turno[]       @relation("Derivacion")
 
   @@index([fecha, estado])
   @@index([tramiteId, estado])
