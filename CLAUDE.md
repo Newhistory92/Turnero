@@ -36,74 +36,101 @@ Para ejecutarlos usá `superpowers:subagent-driven-development` (recomendado) o
 npx graphify .
 ```
 
-## Estado real al 2026-08-07
+## Estado real al 2026-08-12
 
 Todo vive en **`main`**, pusheado. No hay ramas de trabajo activas.
 
-**SP0 — hecho:** tareas 1 (Vitest + guarda), 2 (schema y `lib/db.ts`, **sin migrar**), 4 (tipos),
-5 (máquina de estados), 6 (disponibilidad, con dos correcciones), 7 (FIFO), 8 (catálogo + fixture),
-9 (repositorio de afiliados), 12 (rooms), y los pasos 1-5 de la 15 (estado y transición de derivación).
+**SP0 — COMPLETO.** Todas las 16 tareas están hechas y los tests pasan.
 
-**SP1 — hecho:** tareas 1 (tokens y contraste), 2 (shell del wizard), 3 (teclado numérico),
-5 (tarjetas y pasos ② ③), 6 (impresión por iframe), 8 (inactividad), 9 (hardening), 11 (scripts del tótem).
+**SP1 — COMPLETO.** Todas las 14 tareas están hechas. 7 tests E2E pasan a 1920×1080.
 
-**Bloqueado por falta de `DATABASE_URL`:**
-SP0 tareas 3, 10, 11, 13, 14, 16 y los pasos 6-9 de la 15 · SP1 tareas 4, 7, 10, 12, 13, 14.
+**Verificación actual:**
+- `npm test` → **97 tests, 18 archivos, todos en verde** (incluidos integración contra SQL Server real)
+- `npm run test:e2e` → **7 tests E2E Playwright, todos en verde**
+- `npx tsc --noEmit` → errores en código legacy (`app/OperadorTurno/`, `app/public-display/`) que preexisten; el kiosco compila limpio. Se limpian en SP2/SP3 cuando se reemplacen esas rutas.
 
-Archivos que el plan pide y **todavía no existen**: `prisma/seed.ts`, `server/index.ts`,
-`server/handlers/`, `app/api/afiliados/`, `app/kiosco/pasos/PasoDni.tsx`,
-`app/kiosco/pasos/PasoResultado.tsx`, `lib/kiosco/latido.ts`.
+**Base de datos:**
+- `Turnero` y `Turnero_Test` creadas en SQL Server 10.25.1.144.
+- Migraciones `20260812111428_inicial` y `20260812121925_derivacion` aplicadas en ambas.
+- Seed corrido en ambas: 15 trámites, 4 categorías, 11 boxes.
+- `.env.local` → `Turnero`, `.env.test.local` → `Turnero_Test`.
+- Guarda de tests verificada: aborta si `DATABASE_URL` no termina en `_Test`.
 
-**Verificación actual:** `npm run test:unit` → 73 tests, 10 archivos, todos en verde. No hay tests de
-integración corriendo porque ninguno puede: necesitan SQL Server.
-
-**Para retomar:** conseguir el `DATABASE_URL` y arrancar por la tarea 2 de SP0 (`prisma migrate dev`),
-de la que dependen todas las demás bloqueadas.
+**Para retomar SP2:** leer la sección SP2 más abajo — los datos de la base institucional ya están relevados.
 
 > El `graphify-out/` versionado es **anterior a todo este trabajo**. Describe módulos que ya no
 > existen (Supabase) y no conoce los que sí (`lib/queue/`, `lib/catalogo/`, `app/kiosco/`).
 > Regeneralo con `npx graphify .` antes de confiar en él.
 
-## SP2: dónde quedó el brainstorming
+## SP2: lo que falta para arrancar el brainstorming
 
-**No hay spec de SP2 todavía.** El diseño se cortó a propósito en la pregunta de autenticación, para
-no seguir conjeturando sin ver la base de la obra social. Retomar con `superpowers:brainstorming`.
+**No hay spec de SP2 todavía.** Retomar con `superpowers:brainstorming`.
 
 **Decidido:** los operadores entran con **usuario y contraseña de la base de la obra social**, la
 misma credencial que ya usan en el sistema interno. No se crea un usuario nuevo para el turnero.
 
-**Recomendación pendiente de confirmar con la base a la vista** — importar la persona, nunca la
-credencial:
+**La contraseña (ni su hash) no se copia al turnero.** Razones en el diseño previo del CLAUDE.md y
+confirmadas por lo que se ve en la base: si se copiara el hash bcrypt, quedaría desincronizado cuando
+la cambien y un empleado dado de baja seguiría entrando.
 
-- A `Empleado` se traen usuario, DNI, nombre y legajo. Necesarios para asignar boxes, permisos y
-  estadísticas.
-- La contraseña (ni su hash) **no se copia**. Se valida en vivo contra la base de la obra social en
-  cada login. Si se copiara: se desincroniza cuando la cambian, un empleado dado de baja seguiría
-  entrando hasta la próxima sincronización, y el turnero pasaría a contener credenciales del sistema
-  principal — convirtiéndose en el eslabón por el que se entra a lo demás.
+### Datos relevados de la base institucional (`paginaobrasocialprueba`)
 
-**Lo primero que hay que averiguar en la PC con acceso:**
+**1. ¿Cómo se valida una credencial?**
+No hay stored procedure de autenticación. Hay que:
+- Leer `[User].password` WHERE `[User].usuario = ?`
+- Verificar el hash con **bcrypt** (costo 12, prefijo `$2b$12$`) usando `bcryptjs` o `bcrypt` en Node.
+- No hay columna de salt separada: el salt está embebido en el hash de bcrypt, como siempre.
+- Filtrar además por `[User].activo = 1` para no dejar entrar a usuarios deshabilitados.
 
-1. **¿Cómo se valida una credencial?** ¿Hay un stored procedure o una API que reciba usuario y
-   contraseña y devuelva sí/no (lo ideal: nunca vemos el hash), o hay que leer la columna del hash y
-   verificar acá? Si es lo segundo: **qué algoritmo** (bcrypt, PBKDF2, SHA-256 con salt, MD5) y si hay
-   columna de salt aparte.
-2. **¿Qué es el "usuario"?** ¿El DNI, el legajo, o un nombre de usuario aparte tipo `jperez`?
-3. **¿Qué tabla y columnas** tienen los empleados, y si hay un campo de estado (activo/baja) que
-   permita no importar a los que ya no trabajan.
+Nota: algunos usuarios de prueba tienen password en texto plano (`len=6`). Ignorar eso; en producción
+todos los reales tienen bcrypt.
 
-Mientras no se sepa, el diseño previsto es una interfaz `AutenticadorEmpleados` con
-`validar(usuario, contraseña)` y una implementación stub, para que enchufar la real sea cambiar una
-clase.
+**2. ¿Qué es el "usuario"?**
+El campo `[User].usuario` — nombre de usuario libre tipo `juanp`, `emi25`, `marial`. No es el DNI ni
+el legajo. Es lo que la persona ya tipea hoy para entrar al sistema interno.
+
+**3. ¿Qué tabla y columnas tienen los empleados?**
+
+Tabla `[User]` (autenticación):
+- `usuario` nvarchar — nombre de usuario (campo de login)
+- `password` nvarchar — hash bcrypt
+- `activo` bit — 1=activo, 0=deshabilitado
+- `employeeId` int → FK a `[Employee].id`
+- `roleId` int → FK a `[Role].id`
+
+Tabla `[Employee]` (persona):
+- `id` int — PK
+- `dni` nvarchar — DNI del empleado
+- `name` nvarchar — nombre completo
+- `status` nvarchar — valores observados: `'Activo'`, `'Licencia'`
+- `departmentId` int → FK a `[Department].id`
+- `officeId` int → FK a `[Office].id`
+
+Tabla `[Role]` (roles disponibles):
+- 1 ADMIN, 2 USER, 3 RRHH, 4 ESTADISTA, 5 SUPERVISOR
+
+**Para importar a `Empleado` del turnero**: JOIN `[User]` con `[Employee]` por `employeeId`. Traer
+`usuario`, `dni`, `name`, `status`, `roleId`. Filtrar por `activo=1` en User. Los con `status=Licencia`
+se pueden importar igual: siguen siendo empleados válidos.
+
+**El login del turnero — flujo confirmado:**
+1. Recibir `usuario` + `password` del formulario
+2. `SELECT usuario, password, activo, employeeId FROM [User] WHERE usuario = @usuario`
+3. Si no existe o `activo=0` → rechazar
+4. `bcrypt.compare(password, row.password)` → si false → rechazar
+5. Si true → buscar en `Empleado` del turnero por `dniInstitucional` (o importar si no existe)
+6. Crear `SesionOperador`
+
+**Preguntas de diseño todavía sin respuesta** (para el brainstorming):
+- ¿Qué dispositivo usa el operador — PC de escritorio o tablet?
+- ¿Una persona puede cubrir más de un box a la vez?
+- ¿El panel muestra la cola completa o sólo el siguiente turno?
+- ¿Qué roles del sistema institucional pueden ser operadores del turnero? (Probablemente USER, SUPERVISOR y RRHH)
 
 **Alcance de SP2:** panel de operador y motor de cola — llamar, rellamar, marcar ausente, iniciar
 atención, finalizar, y **el handler `derivarTurno` con su interfaz** (el modelo y la transición ya
 están hechos, ver §6.7 del spec). Más `SesionOperador` con latido, el job diario de abandonados y el
 job de retención de DNI.
-
-**Preguntas de diseño que quedaron sin hacer**, para retomar después de la autenticación: qué
-dispositivo usa el operador (PC de escritorio o tablet), si una persona puede cubrir más de un box a
-la vez, y si el panel muestra la cola completa o sólo el siguiente turno.
 
 ## El grafo del repositorio
 
@@ -142,8 +169,7 @@ No los arregles sueltos: están cubiertos por las tareas de los planes, con test
 | Iconos | Lucide. **Sin emojis** |
 | Tests | Vitest + Playwright (se instalan en SP0 y SP1) |
 
-**El proyecto todavía tiene Supabase conectado.** Es transitorio: la tarea 14 de SP0 lo retira. No
-construyas nada nuevo encima de Supabase.
+Supabase fue retirado en SP0 Task 14. `app/turnero/` fue retirado en SP1 Task 13.
 
 ## Comandos
 
@@ -199,9 +225,9 @@ Salieron de problemas concretos, no de preferencias:
 
 | | Qué | Estado |
 |---|---|---|
-| SP0 | Fundación de datos, motor de cola, rooms | Plan escrito |
-| SP1 | Kiosco v2 | Plan escrito |
-| SP2 | Panel de operador y motor de cola completo | Sin spec |
+| SP0 | Fundación de datos, motor de cola, rooms | **COMPLETO** |
+| SP1 | Kiosco v2 | **COMPLETO** |
+| SP2 | Panel de operador y motor de cola completo | Sin spec — datos de base relevados, listo para brainstorming |
 | SP3 | Pantallas de TV y audio por ala | Sin spec |
 | SP4 | Panel de administración | Sin spec |
 | SP5 | Dashboard de estadísticas | Sin spec |
@@ -211,11 +237,11 @@ contempla.
 
 ## Pendientes externos
 
-Bloquean partes de la implementación, no el arranque. Están en §12 del spec:
+Están en §12 del spec:
 
-1. `DATABASE_URL` de la instancia institucional
-2. Nombre y columnas del objeto de afiliados
-3. Permiso `SELECT` cruzado para el login de la app
+1. ~~`DATABASE_URL` de la instancia institucional~~ → **Resuelto.** `10.25.1.144:1433`, usuario `prueba23`.
+2. Nombre y columnas del objeto de afiliados → parcialmente: hay tabla `[Employee]` con `dni` y `name`. Falta confirmar si afiliados (pacientes) están en otra base o en la misma.
+3. Permiso `SELECT` cruzado para el login — SP2 necesita leer `[User]` y `[Employee]` de `paginaobrasocialprueba` desde el proceso del turnero. El login `prueba23` ya tiene acceso (`origin=local` en los datos vistos).
 4. Modelo de la impresora térmica y confirmación de que es de 80mm
 5. Estructura definitiva de trámites por box (el seed tiene la del pliego)
 6. Host y puerto reales del servidor, para la `URLAllowlist` de Chrome
