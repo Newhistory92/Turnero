@@ -3,6 +3,15 @@
 import { useCallback, useEffect, useState } from "react"
 import { crearTemporizadorInactividad } from "@/lib/kiosco/inactividad"
 import { aplicarHardening } from "@/lib/kiosco/hardening"
+import { generarTurnoPorSocket, type TurnoDelServidor } from "@/lib/kiosco/socket"
+import { formatearDni } from "@/lib/kiosco/dni"
+import { EncabezadoKiosco } from "./EncabezadoKiosco"
+import { PieKiosco } from "./PieKiosco"
+import { PantallaNoDisponible } from "./PantallaNoDisponible"
+import { PasoDni } from "./pasos/PasoDni"
+import { PasoCategoria } from "./pasos/PasoCategoria"
+import { PasoTramite, type EstadoTramite } from "./pasos/PasoTramite"
+import { PasoResultado } from "./pasos/PasoResultado"
 
 export interface TramiteVista {
   id: string
@@ -33,8 +42,37 @@ type Paso =
   | { nombre: "categoria" }
   | { nombre: "tramite"; categoria: CategoriaVista }
   | { nombre: "resultado"; turno: TurnoEmitido }
+  | { nombre: "error" }
 
-export function Wizard({ categorias }: { categorias: CategoriaVista[] }) {
+/**
+ * Lo que se muestra e imprime sale entero de la respuesta del servidor: el
+ * numero, y la hora del createdAt de la fila. El reloj del totem no participa
+ * (regla 6), y no hay numero en pantalla que no este guardado (regla 1).
+ */
+function aTurnoEmitido(
+  turno: TurnoDelServidor,
+  tramite: TramiteVista,
+  dni: string,
+  nombreAfiliado: string | null
+): TurnoEmitido {
+  const emitido = new Date(turno.createdAt)
+  return {
+    numero: turno.numero,
+    nombreODni: nombreAfiliado ?? formatearDni(dni),
+    tramite: tramite.nombre,
+    destino: tramite.destino,
+    hora: emitido.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }),
+    codigo: turno.id.slice(0, 8).toUpperCase(),
+  }
+}
+
+export function Wizard({
+  categorias,
+  estadosTramites = {},
+}: {
+  categorias: CategoriaVista[]
+  estadosTramites?: Record<string, EstadoTramite>
+}) {
   const [paso, setPaso] = useState<Paso>({ nombre: "dni" })
   const [dni, setDni] = useState("")
   const [nombreAfiliado, setNombreAfiliado] = useState<string | null>(null)
@@ -80,13 +118,89 @@ export function Wizard({ categorias }: { categorias: CategoriaVista[] }) {
     }
   }, [reiniciar])
 
+  // Un requestId por sesion del wizard: si el toque se repite o la respuesta
+  // se pierde, el servidor devuelve el mismo turno en vez de emitir otro.
+  const [requestId, setRequestId] = useState(() => crypto.randomUUID())
+  const [generando, setGenerando] = useState(false)
+
+  useEffect(() => {
+    if (paso.nombre === "dni") setRequestId(crypto.randomUUID())
+  }, [paso.nombre])
+
+  const elegirTramite = useCallback(
+    async (t: TramiteVista) => {
+      if (generando) return // primer toque gana; el requestId cubre el resto
+      setGenerando(true)
+      try {
+        const r = await generarTurnoPorSocket({
+          tramiteId: t.id,
+          dni: dni || null,
+          nombreAfiliado,
+          requestId,
+        })
+        if (!r.ok) {
+          setPaso({ nombre: "error" })
+          return
+        }
+        setPaso({
+          nombre: "resultado",
+          turno: aTurnoEmitido(r.turno, t, dni, nombreAfiliado),
+        })
+      } finally {
+        setGenerando(false)
+      }
+    },
+    [dni, nombreAfiliado, requestId, generando]
+  )
+
   return (
     <div
       className="flex h-full flex-col"
       data-paso={paso.nombre}
       data-testid="wizard"
     >
-      {/* Los pasos se agregan en las tareas 3 a 7 */}
+      <EncabezadoKiosco />
+
+      <main className="flex-1">
+        {paso.nombre === "dni" && (
+          <PasoDni
+            dni={dni}
+            onCambioDni={setDni}
+            nombre={nombreAfiliado}
+            onNombre={setNombreAfiliado}
+            onContinuar={() => setPaso({ nombre: "categoria" })}
+          />
+        )}
+
+        {paso.nombre === "categoria" && (
+          <PasoCategoria
+            categorias={categorias}
+            nombre={nombreAfiliado}
+            onElegir={(c) => setPaso({ nombre: "tramite", categoria: c })}
+          />
+        )}
+
+        {paso.nombre === "tramite" && (
+          <PasoTramite
+            categoria={paso.categoria}
+            estados={estadosTramites}
+            onElegir={elegirTramite}
+          />
+        )}
+
+        {paso.nombre === "resultado" && (
+          <PasoResultado turno={paso.turno} onTerminar={reiniciar} />
+        )}
+
+        {paso.nombre === "error" && <PantallaNoDisponible onReintentar={reiniciar} />}
+      </main>
+
+      <PieKiosco
+        paso={paso.nombre}
+        puedeVolver={paso.nombre === "categoria" || paso.nombre === "tramite"}
+        onVolver={volver}
+        onReiniciar={reiniciar}
+      />
 
       {avisoInactividad && (
         <div
