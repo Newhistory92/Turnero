@@ -36,7 +36,7 @@ export default function HomePage() {
               <CardDescription>Interfaz para que los afiliados soliciten turnos</CardDescription>
             </CardHeader>
             <CardContent>
-              <Link href="/turnero">
+              <Link href="/kiosco">
                 <Button className="w-full bg-purple-600 hover:bg-purple-700">Solicitar Turno</Button>
               </Link>
             </CardContent>
