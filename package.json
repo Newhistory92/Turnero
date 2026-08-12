@@ -2,6 +2,9 @@
   "name": "turnero",
   "version": "0.1.0",
   "private": true,
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "scripts": {
     "build": "next build",
     "dev": "tsx --env-file=.env.local server.ts",
