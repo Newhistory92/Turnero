@@ -1,6 +1,7 @@
 import type { Server as IoServer, Socket } from "socket.io"
 import { generarTurno } from "./handlers/generarTurno"
 import { llamarTurno } from "./handlers/llamarTurno"
+import { registrarLatido } from "./handlers/latido"
 import { destinatarios, TODOS, type EventoTurnero } from "./rooms"
 import { obtenerCatalogo } from "@/lib/catalogo"
 
@@ -35,6 +36,10 @@ export function montarTurnero(io: IoServer): void {
     socket.on("SUSCRIBIR", ({ room }: { room: string }, ack?: () => void) => {
       socket.join(room)
       ack?.()
+    })
+
+    socket.on("LATIDO_KIOSCO", async (cmd) => {
+      await registrarLatido(cmd)
     })
 
     socket.on("GENERAR_TURNO", async (cmd, ack?: (r: unknown) => void) => {
