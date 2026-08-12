@@ -3,7 +3,6 @@ import type { Metadata } from "next"
 import { Figtree, Noto_Sans } from "next/font/google"
 import "./globals.css"
 import { SocketProvider } from "@/lib/turno-context"
-import { SupabaseStatus } from "@/components/supabase-status"
 
 const figtree = Figtree({
   subsets: ["latin"],
@@ -34,7 +33,6 @@ export default function RootLayout({
       <body className={`${figtree.variable} ${notoSans.variable}`}>
         <SocketProvider>
           {children}
-          <SupabaseStatus />
         </SocketProvider>
       </body>
     </html>

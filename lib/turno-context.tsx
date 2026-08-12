@@ -15,7 +15,6 @@ interface TurnoState {
 interface SocketContextType {
   socket: Socket | null
   isConnected: boolean
-  supabaseConnected: boolean
   state: TurnoState
   generarTurno: (servicio: string, departamento: string) => void
   llamarTurno: (turnoId: string, boxAsignado: string) => void
@@ -42,7 +41,6 @@ const initialState: TurnoState = {
 const SocketContext = createContext<SocketContextType>({
   socket: null,
   isConnected: false,
-  supabaseConnected: false,
   state: initialState,
   generarTurno: () => {},
   llamarTurno: () => {},
@@ -54,7 +52,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<TurnoState>(initialState)
   const socketRef = useRef<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
-  const [supabaseConnected, setSupabaseConnected] = useState(false)
 
   useEffect(() => {
     const socket = io({
@@ -72,11 +69,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     socket.on("disconnect", () => {
       console.log("❌ Socket.io desconectado")
       setIsConnected(false)
-    })
-
-    socket.on("SUPABASE_STATUS", ({ connected }: { connected: boolean }) => {
-      console.log(`🗄️ Supabase: ${connected ? "conectado" : "desconectado"}`)
-      setSupabaseConnected(connected)
     })
 
     socket.on("STATE_UPDATE", ({ state: newState }: { state: TurnoState }) => {
@@ -114,7 +106,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       value={{
         socket: socketRef.current,
         isConnected,
-        supabaseConnected,
         state,
         generarTurno,
         llamarTurno,
