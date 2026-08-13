@@ -6,6 +6,7 @@ import { usarSocketOperador } from "./usarSocketOperador"
 import { TurnoActivo } from "./TurnoActivo"
 import { ColaBox } from "./ColaBox"
 import { ListaAusentes } from "./ListaAusentes"
+import { DialogoDerivar } from "./DialogoDerivar"
 
 export function PanelOperador() {
   const router = useRouter()
@@ -13,6 +14,7 @@ export function PanelOperador() {
   const [aviso, setAviso] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
   const [inicioAtencion, setInicioAtencion] = useState<number | null>(null)
+  const [derivando, setDerivando] = useState(false)
 
   useEffect(() => {
     if (sinSesion) router.push("/operador/login")
@@ -99,7 +101,7 @@ export function PanelOperador() {
         onAusente={() => sobreActivo("MARCAR_AUSENTE")}
         onIniciar={() => sobreActivo("INICIAR_ATENCION")}
         onFinalizar={() => sobreActivo("FINALIZAR_ATENCION")}
-        onDerivar={() => setAviso("La derivación se habilita en el paso siguiente")}
+        onDerivar={() => setDerivando(true)}
       />
 
       <div className="flex flex-col gap-6">
@@ -110,6 +112,17 @@ export function PanelOperador() {
           onLlamar={(turnoId) => void comando("LLAMAR_TURNO", { turnoId })}
         />
       </div>
+
+      {derivando && activo && (
+        <DialogoDerivar
+          tramiteActualId={activo.tramiteId}
+          onCerrar={() => setDerivando(false)}
+          onConfirmar={async (tramiteDestinoId) => {
+            setDerivando(false)
+            await comando("DERIVAR_TURNO", { turnoId: activo.id, tramiteDestinoId })
+          }}
+        />
+      )}
     </main>
   )
 }
