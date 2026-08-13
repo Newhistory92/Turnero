@@ -15,7 +15,7 @@ import { prisma } from "@/lib/db"
 export async function marcarAbandonados(
   fecha: Date = new Date()
 ): Promise<{ abandonados: number; huerfanos: number }> {
-  const dia = new Date(Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth(), fecha.getUTCDate()))
+  const dia = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate())
 
   const { count: abandonados } = await prisma.turno.updateMany({
     where: { fecha: dia, estado: "esperando" },
