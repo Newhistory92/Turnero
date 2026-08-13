@@ -2,6 +2,7 @@ import { createServer } from "http"
 import { Server } from "socket.io"
 import next from "next"
 import { montarTurnero } from "./server/index"
+import { programarJobs } from "./server/jobs/programador"
 
 const dev = process.env.NODE_ENV !== "production"
 const hostname = process.env.HOSTNAME ?? "localhost"
@@ -15,6 +16,7 @@ app.prepare().then(() => {
   const io = new Server(httpServer, { cors: { origin: "*", methods: ["GET", "POST"] } })
 
   montarTurnero(io)
+  programarJobs()
 
   httpServer.listen(port, () => {
     console.log(`Servidor listo en http://${hostname}:${port}`)

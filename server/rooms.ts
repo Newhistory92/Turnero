@@ -5,6 +5,7 @@ export type EventoTurnero =
   | "TURNO_AUSENTE"
   | "TURNO_INICIADO"
   | "TURNO_FINALIZADO"
+  | "TURNO_DERIVADO"
   | "CATALOGO_ACTUALIZADO"
 
 export interface ContextoEvento {
@@ -51,6 +52,7 @@ export function destinatarios(
     case "TURNO_AUSENTE":
     case "TURNO_INICIADO":
     case "TURNO_FINALIZADO":
+    case "TURNO_DERIVADO":
       if (ctx.boxId) rooms.add(roomBox(ctx.boxId))
       ctx.tramiteBoxIds.forEach((id) => rooms.add(roomBox(id)))
       break

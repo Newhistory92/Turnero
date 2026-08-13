@@ -49,3 +49,18 @@ describe("destinatarios", () => {
     }
   })
 })
+
+describe("ruteo de TURNO_DERIVADO", () => {
+  it("avisa al box que derivó y a los que atienden el trámite destino", () => {
+    const rooms = destinatarios("TURNO_DERIVADO", {
+      ala: "Sur",
+      piso: "Planta Baja",
+      boxId: "box-origen",
+      tramiteBoxIds: ["box-destino-1", "box-destino-2"],
+    })
+    expect(rooms).toContain("box:box-origen")
+    expect(rooms).toContain("box:box-destino-1")
+    expect(rooms).toContain("box:box-destino-2")
+    expect(rooms).toContain("admin")
+  })
+})
