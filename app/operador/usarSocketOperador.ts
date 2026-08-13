@@ -20,7 +20,7 @@ export function usarSocketOperador() {
 
   const refrescar = useCallback((s: Socket) => {
     s.emit("ENTRAR_BOX", {}, (r: { ok: boolean; snapshot?: SnapshotOperador }) => {
-      if (r.ok && r.snapshot) {
+      if (r?.ok && r.snapshot) {
         setSnapshot(r.snapshot)
         setSinSesion(false)
       } else {

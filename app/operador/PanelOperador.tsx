@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { usarSocketOperador } from "./usarSocketOperador"
 import { TurnoActivo } from "./TurnoActivo"
@@ -12,7 +12,7 @@ export function PanelOperador() {
   const { snapshot, conectado, sinSesion, enviar } = usarSocketOperador()
   const [aviso, setAviso] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
-  const inicioAtencion = useRef<number | null>(null)
+  const [inicioAtencion, setInicioAtencion] = useState<number | null>(null)
 
   useEffect(() => {
     if (sinSesion) router.push("/operador/login")
@@ -21,13 +21,13 @@ export function PanelOperador() {
   const activo = snapshot?.activo ?? null
 
   useEffect(() => {
-    if (activo?.estado === "atendiendo" && inicioAtencion.current === null) {
-      inicioAtencion.current = Date.now()
+    if (activo?.estado === "atendiendo" && inicioAtencion === null) {
+      setInicioAtencion(Date.now())
     }
     if (!activo || activo.estado !== "atendiendo") {
-      inicioAtencion.current = null
+      setInicioAtencion(null)
     }
-  }, [activo])
+  }, [activo, inicioAtencion])
 
   const comando = useCallback(
     async (nombre: string, datos: Record<string, unknown> = {}) => {
@@ -91,7 +91,7 @@ export function PanelOperador() {
 
       <TurnoActivo
         turno={activo}
-        inicioAtencion={inicioAtencion.current}
+        inicioAtencion={inicioAtencion}
         hayCola={snapshot.cola.length > 0}
         ocupado={ocupado || !conectado}
         onLlamarSiguiente={llamarSiguiente}
