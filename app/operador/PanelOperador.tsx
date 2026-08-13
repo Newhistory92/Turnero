@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { usarSocketOperador } from "./usarSocketOperador"
+import { usarAtajos, type Accion, type EstadoPanel } from "./usarAtajos"
 import { TurnoActivo } from "./TurnoActivo"
 import { ColaBox } from "./ColaBox"
 import { ListaAusentes } from "./ListaAusentes"
@@ -55,6 +56,25 @@ export function PanelOperador() {
     [activo, comando]
   )
 
+  const estadoPanel: EstadoPanel =
+    !activo ? "sin-turno" : activo.estado === "atendiendo" ? "atendiendo" : "llamado"
+
+  const confirmar = (mensaje: string) => window.confirm(mensaje)
+
+  usarAtajos(estadoPanel, !!snapshot && conectado && !ocupado && !derivando, (accion: Accion) => {
+    switch (accion) {
+      case "llamar": llamarSiguiente(); break
+      case "iniciar": sobreActivo("INICIAR_ATENCION"); break
+      case "finalizar": sobreActivo("FINALIZAR_ATENCION"); break
+      case "rellamar": sobreActivo("RELLAMAR_TURNO"); break
+      // Confirmacion explicita: no se pueden deshacer.
+      case "ausente":
+        if (confirmar("¿Marcar este turno como ausente?")) sobreActivo("MARCAR_AUSENTE")
+        break
+      case "derivar": setDerivando(true); break
+    }
+  })
+
   if (!snapshot) {
     return <main className="p-10 text-lg">Conectando…</main>
   }
@@ -98,7 +118,9 @@ export function PanelOperador() {
         ocupado={ocupado || !conectado}
         onLlamarSiguiente={llamarSiguiente}
         onRellamar={() => sobreActivo("RELLAMAR_TURNO")}
-        onAusente={() => sobreActivo("MARCAR_AUSENTE")}
+        onAusente={() => {
+          if (window.confirm("¿Marcar este turno como ausente?")) sobreActivo("MARCAR_AUSENTE")
+        }}
         onIniciar={() => sobreActivo("INICIAR_ATENCION")}
         onFinalizar={() => sobreActivo("FINALIZAR_ATENCION")}
         onDerivar={() => setDerivando(true)}
