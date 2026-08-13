@@ -1,0 +1,31 @@
+import { NextResponse } from "next/server"
+import { login } from "@/lib/auth/operador"
+import { firmarCookie, NOMBRE_COOKIE } from "@/lib/auth/sesion"
+
+export async function POST(req: Request) {
+  const { usuario, clave, boxId } = await req.json()
+
+  if (!usuario || !clave || !boxId) {
+    return NextResponse.json({ ok: false, mensaje: "Faltan datos" }, { status: 400 })
+  }
+
+  const r = await login(usuario, clave, boxId)
+  if (!r.ok) {
+    return NextResponse.json({ ok: false, codigo: r.codigo, mensaje: r.mensaje }, { status: 401 })
+  }
+
+  const res = NextResponse.json({
+    ok: true,
+    empleado: r.empleado,
+    boxId: r.boxId,
+  })
+  res.cookies.set(NOMBRE_COOKIE, firmarCookie(r.sesionId), {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    // secure queda en false a proposito: el totem y los mostradores acceden
+    // por HTTP en la red interna, y con secure la cookie no viajaria.
+    secure: false,
+  })
+  return res
+}
