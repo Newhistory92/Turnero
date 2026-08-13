@@ -44,6 +44,12 @@ Todo vive en **`main`**, pusheado. No hay ramas de trabajo activas.
 
 **SP1 — COMPLETO.** Todas las 14 tareas están hechas. 7 tests E2E pasan a 1920×1080.
 
+**SP2 — COMPLETO.** Panel de operador, login contra la obra social, los cinco handlers de atención,
+derivación y los dos jobs diarios. `app/OperadorTurno/` retirado.
+
+El alta de empleados es por script: `npm run importar:empleados -- usuario1 usuario2`. La asignación
+de boxes se hace a mano en la base hasta que SP4 traiga el ABM.
+
 **Verificación actual:**
 - `npm test` → **97 tests, 18 archivos, todos en verde** (incluidos integración contra SQL Server real)
 - `npm run test:e2e` → **7 tests E2E Playwright, todos en verde**
@@ -230,6 +236,10 @@ npm run dev
 npm test
 ```
 
+```bash
+npm run importar:empleados -- silviaflores
+```
+
 `npm run dev` levanta el custom server con `tsx`, no `next dev`. Cambiar eso rompe Socket.io.
 
 ## Tres bases de datos
@@ -301,7 +311,7 @@ Salieron de problemas concretos, no de preferencias:
 |---|---|---|
 | SP0 | Fundación de datos, motor de cola, rooms | **COMPLETO** |
 | SP1 | Kiosco v2 | **COMPLETO** |
-| SP2 | Panel de operador y motor de cola completo | Sin spec — datos de base relevados, listo para brainstorming |
+| SP2 | Panel de operador y motor de cola completo | **COMPLETO** |
 | SP3 | Pantallas de TV y audio por ala | Sin spec |
 | SP4 | Panel de administración | Sin spec |
 | SP5 | Dashboard de estadísticas | Sin spec |
@@ -315,7 +325,7 @@ Están en §12 del spec:
 
 1. ~~`DATABASE_URL` de la instancia institucional~~ → **Resuelto.** `10.25.1.144:1433`, usuario `prueba23`.
 2. ~~Nombre y columnas del objeto de afiliados~~ → **Resuelto.** `[ObraSocial].[dbo].[Afiliados]`, conectada y verificada end-to-end en el kiosco. Ver "Afiliados" más arriba.
-3. Permiso `SELECT` cruzado para el login — SP2 necesita leer `[User]` y `[Employee]` de `paginaobrasocialprueba` desde el proceso del turnero. El login `prueba23` ya tiene acceso (`origin=local` en los datos vistos).
+3. ~~Permiso `SELECT` cruzado para el login~~ → **Resuelto.** El login lee `[Usuario]` y `[Persona]` de `ObraSocial` y funciona con el usuario `prueba23`.
 4. Modelo de la impresora térmica y confirmación de que es de 80mm
 5. Estructura definitiva de trámites por box (el seed tiene la del pliego)
 6. Host y puerto reales del servidor, para la `URLAllowlist` de Chrome
