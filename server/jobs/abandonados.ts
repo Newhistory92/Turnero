@@ -15,7 +15,12 @@ import { prisma } from "@/lib/db"
 export async function marcarAbandonados(
   fecha: Date = new Date()
 ): Promise<{ abandonados: number; huerfanos: number }> {
-  const dia = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate())
+  // Los campos fecha del schema son DATE en SQL Server. Prisma los compara contra
+  // DATETIME2; SQL Server convierte DATE a medianoche UTC para la comparacion.
+  // diaHabil() en generarTurno produce fechas que CAST AS DATE trunca a la fecha
+  // local, y la comparacion funciona con medianoche UTC. Usar hora local en UTC-3
+  // (03:00 UTC) no coincide con la conversion implicita de DATE->00:00UTC.
+  const dia = new Date(Date.UTC(fecha.getUTCFullYear(), fecha.getUTCMonth(), fecha.getUTCDate()))
 
   const { count: abandonados } = await prisma.turno.updateMany({
     where: { fecha: dia, estado: "esperando" },
