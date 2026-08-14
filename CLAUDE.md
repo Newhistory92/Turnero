@@ -50,6 +50,17 @@ derivación y los dos jobs diarios. `app/OperadorTurno/` retirado.
 El alta de empleados es por script: `npm run importar:empleados -- usuario1 usuario2`. La asignación
 de boxes se hace a mano en la base hasta que SP4 traiga el ABM.
 
+**SP3 — COMPLETO.** Dos pantallas de llamado, una por ala, en `/pantalla/norte` y `/pantalla/sur`.
+Campanilla sintetizada, reloj y estado de conexión. `app/public-display/` retirado.
+
+Cada TV arranca Chrome apuntado a su URL. **Hay que lanzarlo con
+`--autoplay-policy=no-user-gesture-required`**, o la campanilla queda bloqueada: sin gesto del
+usuario Chrome no deja sonar nada, y en una TV nadie hace clic. Si igual queda bloqueada, la pantalla
+muestra un cartel para tocarla una vez.
+
+La pantalla muestra número, nombre y box. **No muestra el trámite, a propósito:** un nombre junto a
+un trámite médico en un pasillo es un dato de salud identificable.
+
 **Verificación actual:**
 - `npm test` → **97 tests, 18 archivos, todos en verde** (incluidos integración contra SQL Server real)
 - `npm run test:e2e` → **7 tests E2E Playwright, todos en verde**
@@ -312,12 +323,19 @@ Salieron de problemas concretos, no de preferencias:
 | SP0 | Fundación de datos, motor de cola, rooms | **COMPLETO** |
 | SP1 | Kiosco v2 | **COMPLETO** |
 | SP2 | Panel de operador y motor de cola completo | **COMPLETO** |
-| SP3 | Pantallas de TV y audio por ala | Sin spec |
+| SP3 | Pantallas de TV y audio por ala | **COMPLETO** |
 | SP4 | Panel de administración | Sin spec |
 | SP5 | Dashboard de estadísticas | Sin spec |
 
 SP2 a SP5 necesitan su propio ciclo de brainstorming → spec → plan. El modelo de datos de SP0 ya los
 contempla.
+
+## Notas técnicas para la implementación
+
+**`Date.UTC()` es para `Turno.fecha`, no para `TurnoEvento.timestamp`.** El primero es `DATE` y SQL
+Server lo convierte a medianoche UTC, así que hay que consultarlo con `Date.UTC()`. El segundo es
+`DATETIME2` y guarda un instante real: ahí el corte del día va en hora local. Aplicar la regla de uno
+al otro corre el corte tres horas.
 
 ## Pendientes externos
 
