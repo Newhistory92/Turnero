@@ -37,37 +37,45 @@ export class RepositorioStub implements RepositorioAfiliados {
   }
 }
 
+/**
+ * Lee los afiliados de [ObraSocial].[dbo].[Afiliados] (solo lectura).
+ *
+ * Semantica de las columnas, relevada sobre los datos reales:
+ * - `Codigo`  es el documento de la propia persona (nchar(8), con relleno).
+ * - `Doctit`  es el documento del TITULAR: lo comparte todo el grupo familiar,
+ *             hasta 18 filas con el mismo valor. No identifica a la persona.
+ * - `Nombre`  viene en un solo campo, formato "APELLIDO Nombres". Es la unica
+ *             columna de nombre confiable: nombreAfiliado/apellidoAfiliado solo
+ *             estan cargadas en el 20% de las filas.
+ *
+ * Por eso se busca por `Codigo` y solo se cae a `Doctit` si no hubo match: quien
+ * tipea su DNI tiene que verse a si mismo, no al titular de su grupo.
+ */
 export class RepositorioSql implements RepositorioAfiliados {
-  constructor(
-    private base = process.env.AFILIADOS_BASE!,
-    private esquema = process.env.AFILIADOS_ESQUEMA ?? "dbo",
-    private tabla = process.env.AFILIADOS_TABLA!,
-    private colDni = process.env.AFILIADOS_COL_DNI ?? "dni",
-    private colApellido = process.env.AFILIADOS_COL_APELLIDO ?? "apellido",
-    private colNombre = process.env.AFILIADOS_COL_NOMBRE ?? "nombre"
-  ) {}
+  constructor(private base = process.env.AFILIADOS_BASE ?? "ObraSocial") {}
 
   async buscarPorDni(dni: string): Promise<Afiliado | null> {
-    // Los identificadores vienen de variables de entorno, no de entrada de usuario.
+    // El nombre de la base sale del entorno, no de entrada de usuario.
     // El DNI, que si viene del usuario, va como parametro.
     const sql = `
-      SELECT TOP 1
-        LTRIM(RTRIM([${this.colNombre}])) AS nombre,
-        LTRIM(RTRIM([${this.colApellido}])) AS apellido
-      FROM [${this.base}].[${this.esquema}].[${this.tabla}]
-      WHERE [${this.colDni}] = @P1
+      SELECT TOP 1 LTRIM(RTRIM(Nombre)) AS nombre
+      FROM [${this.base}].[dbo].[Afiliados]
+      WHERE Codigo = @P1 OR Doctit = @P1
+      ORDER BY
+        CASE WHEN Codigo = @P1 THEN 0 ELSE 1 END,
+        CASE WHEN anulado = 0 THEN 0 ELSE 1 END,
+        CASE WHEN Parentesco = '000' THEN 0 ELSE 1 END,
+        IdAfiliado
     `
-    const filas = await prisma.$queryRawUnsafe<
-      { nombre: string; apellido: string }[]
-    >(sql, dni)
+    const filas = await prisma.$queryRawUnsafe<{ nombre: string }[]>(sql, dni)
 
-    if (filas.length === 0) return null
-    return { nombre: `${filas[0].nombre} ${filas[0].apellido}`.trim() }
+    const nombre = filas[0]?.nombre?.trim()
+    return nombre ? { nombre } : null
   }
 }
 
 export function crearRepositorioAfiliados(): RepositorioAfiliados {
-  return process.env.AFILIADOS_TABLA ? new RepositorioSql() : new RepositorioStub()
+  return process.env.AFILIADOS_BASE ? new RepositorioSql() : new RepositorioStub()
 }
 
 export const TIMEOUT_AFILIADO_MS = 1500

@@ -1,6 +1,19 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+
+// crypto.randomUUID solo existe en contexto seguro (HTTPS/localhost).
+// En HTTP de red local (tótem) y en SSR no está disponible: fallback a Math.random.
+function nuevoUuid(): string {
+  try {
+    return crypto.randomUUID()
+  } catch {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0
+      return (c === "x" ? r : (r & 0x3) | 0x8).toString(16)
+    })
+  }
+}
 import { crearTemporizadorInactividad } from "@/lib/kiosco/inactividad"
 import { aplicarHardening } from "@/lib/kiosco/hardening"
 import { generarTurnoPorSocket, type TurnoDelServidor } from "@/lib/kiosco/socket"
@@ -120,11 +133,11 @@ export function Wizard({
 
   // Un requestId por sesion del wizard: si el toque se repite o la respuesta
   // se pierde, el servidor devuelve el mismo turno en vez de emitir otro.
-  const [requestId, setRequestId] = useState(() => crypto.randomUUID())
+  const [requestId, setRequestId] = useState(() => nuevoUuid())
   const [generando, setGenerando] = useState(false)
 
   useEffect(() => {
-    if (paso.nombre === "dni") setRequestId(crypto.randomUUID())
+    if (paso.nombre === "dni") setRequestId(nuevoUuid())
   }, [paso.nombre])
 
   const elegirTramite = useCallback(
