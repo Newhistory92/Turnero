@@ -21,7 +21,7 @@ export default function HomePage() {
 
       <div className="mt-12 grid w-full max-w-3xl grid-cols-1 gap-6 sm:grid-cols-2">
         <Link
-          href="/public-display"
+          href="/pantalla/norte"
           className="group flex flex-col gap-4 rounded-2xl border-2 border-gris-70 bg-white p-8 shadow-sm transition-colors hover:border-osp focus-visible:outline focus-visible:outline-4 focus-visible:outline-gris-principal"
         >
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gris-20">
