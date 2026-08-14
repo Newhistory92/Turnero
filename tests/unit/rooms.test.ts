@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { roomAla, roomPisoAla, roomBox, destinatarios } from "@/server/rooms"
+import { roomAla, roomPisoAla, roomBox, destinatarios, slug } from "@/server/rooms"
 
 describe("nombres de room", () => {
   it("normaliza el nombre del ala a minúsculas", () => {
@@ -62,5 +62,18 @@ describe("ruteo de TURNO_DERIVADO", () => {
     expect(rooms).toContain("box:box-destino-1")
     expect(rooms).toContain("box:box-destino-2")
     expect(rooms).toContain("admin")
+  })
+})
+
+describe("slug exportado", () => {
+  it("normaliza igual que los nombres de room", () => {
+    expect(slug("Norte")).toBe("norte")
+    expect(slug("Planta Alta")).toBe("planta-alta")
+  })
+
+  // La URL de la pantalla y el nombre del room tienen que normalizar con la
+  // misma funcion: si divergen, la TV se une a un room al que nadie emite.
+  it("el slug de la URL coincide con el room del ala", () => {
+    expect(roomAla("Norte")).toBe(`ala:${slug("Norte")}`)
   })
 })

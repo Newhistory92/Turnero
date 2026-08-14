@@ -8,10 +8,11 @@ import { iniciarAtencion } from "./handlers/iniciarAtencion"
 import { finalizarAtencion } from "./handlers/finalizarAtencion"
 import { derivarTurno } from "./handlers/derivarTurno"
 import { registrarLatido } from "./handlers/latido"
-import { destinatarios, roomBox, TODOS, type EventoTurnero } from "./rooms"
+import { destinatarios, roomAla, roomBox, TODOS, type EventoTurnero } from "./rooms"
 import { obtenerCatalogo } from "@/lib/catalogo"
 import { leerCookie, NOMBRE_COOKIE, sesionActiva, renovarLatido } from "@/lib/auth/sesion"
 import { armarSnapshot } from "./snapshot"
+import { armarSnapshotPantalla } from "./snapshotPantalla"
 
 async function contextoDe(tramiteId: string, boxId: string | null) {
   const catalogo = await obtenerCatalogo()
@@ -138,5 +139,18 @@ export function montarTurnero(io: IoServer): void {
         await emitir(io, "TURNO_GENERADO", { turno: r.destino }, r.destino.tramiteId, null)
       }
     })
+
+    // --- Pantallas de ala ---
+
+    // Sin sesion, a diferencia de ENTRAR_BOX: la TV es una pantalla publica sin
+    // login. Por eso el snapshot expone solo numero, nombre y box, que es lo
+    // que ya esta a la vista de cualquiera que mire el televisor.
+    socket.on(
+      "ENTRAR_PANTALLA",
+      async ({ ala }: { ala: string }, ack?: (r: unknown) => void) => {
+        socket.join(roomAla(ala))
+        ack?.({ ok: true, snapshot: await armarSnapshotPantalla(ala) })
+      }
+    )
   })
 }

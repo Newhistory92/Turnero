@@ -15,7 +15,7 @@ export interface ContextoEvento {
   tramiteBoxIds: string[]
 }
 
-const slug = (s: string) =>
+export const slug = (s: string) =>
   s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, "-")
 
 export const ROOM_KIOSCO = "kiosco"
