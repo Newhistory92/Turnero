@@ -40,7 +40,7 @@ function tocar(ctx: AudioContext): void {
   }
 }
 
-export function usarCampanilla(eventoIdActual: string | null) {
+export function usarCampanilla(eventoIdActual: string | null | undefined) {
   const anterior = useRef<string | null | undefined>(undefined)
   const ctxRef = useRef<AudioContext | null>(null)
   const [bloqueado, setBloqueado] = useState(false)
@@ -62,7 +62,7 @@ export function usarCampanilla(eventoIdActual: string | null) {
   }, [contexto])
 
   useEffect(() => {
-    if (debeSonar(anterior.current, eventoIdActual)) {
+    if (debeSonar(anterior.current, eventoIdActual ?? null)) {
       const ctx = contexto()
       if (ctx.state === "suspended") {
         ctx.resume().then(

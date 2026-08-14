@@ -62,6 +62,10 @@ test("un llamado del Norte no aparece en la pantalla del Sur", async ({ page }) 
 
   await page.goto("/pantalla/sur")
 
+  // Esperar a que el socket conecte antes de la aserción negativa.
+  // Sin esto, el test pasa en falso si el socket no llegó a entregar datos erróneos.
+  await expect(page.getByText("En línea")).toBeVisible()
+
   await expect(page.getByText("N02")).toHaveCount(0)
   await expect(page.getByText("Pérez, Juan")).toHaveCount(0)
 })

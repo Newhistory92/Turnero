@@ -8,7 +8,9 @@ import { UltimosLlamados } from "../UltimosLlamados"
 
 export function PantallaAla({ ala }: { ala: string }) {
   const { snapshot, conectado } = usarSocketPantalla(ala)
-  const { bloqueado, desbloquear } = usarCampanilla(snapshot?.actual?.eventoId ?? null)
+  const { bloqueado, desbloquear } = usarCampanilla(
+    snapshot === null ? undefined : (snapshot.actual?.eventoId ?? null)
+  )
 
   return (
     <main
