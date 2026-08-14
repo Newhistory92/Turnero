@@ -60,7 +60,7 @@ export function DialogoDerivar({
   if (elegido) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-gris-principal/60 p-6">
-        <div className="w-full max-w-xl rounded-2xl bg-white p-10 text-center">
+        <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl p-10 text-center">
           <p className="text-lg">Derivar a</p>
           <p className="mt-2 font-titulo text-4xl font-bold">{elegido.nombre}</p>
           <p className="mt-6 font-titulo text-3xl font-semibold">Ala {elegido.ala}</p>
@@ -91,7 +91,7 @@ export function DialogoDerivar({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-gris-principal/60 p-6">
-      <div className="mt-12 w-full max-w-2xl rounded-2xl bg-white p-8">
+      <div className="mt-12 w-full max-w-2xl rounded-2xl bg-white shadow-2xl p-8">
         <div className="flex items-center justify-between">
           <h2 className="font-titulo text-2xl font-semibold">Derivar a otro trámite</h2>
           <button type="button" onClick={onCerrar} className="text-sm font-semibold">

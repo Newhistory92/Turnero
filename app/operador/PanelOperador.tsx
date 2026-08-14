@@ -8,6 +8,7 @@ import { TurnoActivo } from "./TurnoActivo"
 import { ColaBox } from "./ColaBox"
 import { ListaAusentes } from "./ListaAusentes"
 import { DialogoDerivar } from "./DialogoDerivar"
+import { usarProtectorPantalla } from "./usarProtectorPantalla"
 
 export function PanelOperador() {
   const router = useRouter()
@@ -16,6 +17,8 @@ export function PanelOperador() {
   const [ocupado, setOcupado] = useState(false)
   const [inicioAtencion, setInicioAtencion] = useState<number | null>(null)
   const [derivando, setDerivando] = useState(false)
+  const [splash, setSplash] = useState(true)
+  const bloqueado = usarProtectorPantalla()
 
   useEffect(() => {
     if (sinSesion) router.push("/operador/login")
@@ -144,6 +147,55 @@ export function PanelOperador() {
             await comando("DERIVAR_TURNO", { turnoId: activo.id, tramiteDestinoId })
           }}
         />
+      )}
+
+      {bloqueado && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/Qws7iZXulBsBvyUTiQ.webp"
+            alt=""
+            aria-hidden
+            style={{ animation: "flotar 6s ease-in-out infinite", maxWidth: "420px", width: "60vw" }}
+          />
+          <style>{`
+            @keyframes flotar {
+              0%   { transform: translateY(0px);   }
+              50%  { transform: translateY(-24px);  }
+              100% { transform: translateY(0px);   }
+            }
+          `}</style>
+        </div>
+      )}
+
+      {splash && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-white"
+          style={{ animation: "splashFondo 2.6s ease forwards", pointerEvents: "none" }}
+          onAnimationEnd={() => setSplash(false)}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/VTwDfhNOmMxZMm2iYf.webp"
+            alt=""
+            aria-hidden
+            style={{ animation: "splashLogo 2.6s cubic-bezier(0.34,1.56,0.64,1) forwards", maxWidth: "400px", width: "55vw" }}
+          />
+          <style>{`
+            @keyframes splashFondo {
+              0%   { opacity: 1; }
+              70%  { opacity: 1; }
+              100% { opacity: 0; }
+            }
+            @keyframes splashLogo {
+              0%   { opacity: 0;   transform: scale(0.15); }
+              35%  { opacity: 1;   transform: scale(1.08); }
+              50%  { opacity: 1;   transform: scale(0.97); }
+              65%  { opacity: 1;   transform: scale(1);    }
+              100% { opacity: 0;   transform: scale(1);    }
+            }
+          `}</style>
+        </div>
       )}
     </main>
   )
