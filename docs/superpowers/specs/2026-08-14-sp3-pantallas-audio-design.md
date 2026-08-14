@@ -228,7 +228,13 @@ tres comportamientos correctos:
 El número además destella al entrar. El destello respeta `prefers-reduced-motion`: si el sistema lo
 pide, el número cambia sin animación.
 
-### 7.1 El autoplay, que es lo que rompe esto en producción
+### 7.1 La campanilla se sintetiza, no se sirve
+
+Dos tonos descendentes generados con la Web Audio API, no un archivo. No hay binario que versionar,
+que se pueda romper en el deploy ni que devuelva 404 dejando la pantalla muda sin aviso. Un aviso de
+dos tonos es exactamente lo que hace falta y son diez líneas de código.
+
+### 7.2 El autoplay, que es lo que rompe esto en producción
 
 Chrome bloquea el audio hasta que haya un gesto del usuario, y en una TV nadie hace clic nunca.
 
@@ -294,9 +300,15 @@ app/pantalla/LlamadoActual.tsx        número, nombre, pastilla del box
 app/pantalla/UltimosLlamados.tsx      columna lateral
 app/pantalla/EncabezadoPantalla.tsx   logo, ala, reloj, estado
 server/snapshotPantalla.ts            armarSnapshotPantalla(ala)
-public/campanilla.mp3                 el sonido
 ```
 
-**Se modifica:** `server/index.ts`, sólo para registrar `ENTRAR_PANTALLA`.
+Sin archivo de audio: la campanilla se sintetiza (§7.1).
+
+**Se modifica:**
+- `server/index.ts`, para registrar `ENTRAR_PANTALLA`.
+- `server/rooms.ts`, **sólo para exportar la función `slug` que ya existe**. La URL de la pantalla y
+  el nombre del room tienen que normalizar igual; duplicar esa función es exactamente la forma en que
+  la TV terminaría unida a un room al que nadie emite.
+
 **Se elimina:** `app/public-display/`.
-**No se toca:** `server/rooms.ts`, `prisma/schema.prisma`.
+**No se toca:** `prisma/schema.prisma`. SP3 no requiere migración.
