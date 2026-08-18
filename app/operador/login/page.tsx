@@ -8,16 +8,19 @@ interface Box {
   nombre: string
 }
 
+const PANEL = "__panel__"
+
 export default function LoginOperador() {
   const router = useRouter()
   const [usuario, setUsuario] = useState("")
   const [clave, setClave] = useState("")
   const [boxes, setBoxes] = useState<Box[] | null>(null)
-  const [boxId, setBoxId] = useState("")
+  const [panel, setPanel] = useState(false)
+  const [destino, setDestino] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
 
-  async function pedirBoxes(e: React.FormEvent) {
+  async function pedirAcceso(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     setEnviando(true)
@@ -33,7 +36,10 @@ export default function LoginOperador() {
         return
       }
       setBoxes(datos.boxes)
-      if (datos.boxes.length === 1) setBoxId(datos.boxes[0].id)
+      setPanel(datos.panel)
+      // Un solo destino posible no merece que la persona elija.
+      if (datos.boxes.length === 1 && !datos.panel) setDestino(datos.boxes[0].id)
+      if (datos.boxes.length === 0 && datos.panel) setDestino(PANEL)
     } catch {
       setError("No se pudo conectar con el servidor")
     } finally {
@@ -49,14 +55,18 @@ export default function LoginOperador() {
       const r = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usuario, clave, boxId }),
+        body: JSON.stringify({
+          usuario,
+          clave,
+          boxId: destino === PANEL ? null : destino,
+        }),
       })
       const datos = await r.json()
       if (!datos.ok) {
         setError(datos.mensaje)
         return
       }
-      router.push("/operador")
+      router.push(destino === PANEL ? "/admin" : "/operador")
     } catch {
       setError("No se pudo conectar con el servidor")
     } finally {
@@ -68,11 +78,13 @@ export default function LoginOperador() {
     "w-full rounded-xl border-2 border-gris-70 bg-white px-4 py-3 text-lg " +
     "focus:border-gris-principal focus:outline-none"
 
+  const eligiendo = boxes !== null
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6">
-      <h1 className="mb-8 font-titulo text-3xl font-semibold">Panel de operador</h1>
+      <h1 className="mb-8 font-titulo text-3xl font-semibold">Turnero</h1>
 
-      <form onSubmit={boxes ? entrar : pedirBoxes} className="flex flex-col gap-4">
+      <form onSubmit={eligiendo ? entrar : pedirAcceso} className="flex flex-col gap-4">
         <label className="flex flex-col gap-2">
           <span className="text-sm font-semibold">Usuario</span>
           <input
@@ -80,7 +92,7 @@ export default function LoginOperador() {
             value={usuario}
             onChange={(e) => setUsuario(e.target.value)}
             autoComplete="username"
-            disabled={!!boxes}
+            disabled={eligiendo}
             required
           />
         </label>
@@ -93,24 +105,25 @@ export default function LoginOperador() {
             value={clave}
             onChange={(e) => setClave(e.target.value)}
             autoComplete="current-password"
-            disabled={!!boxes}
+            disabled={eligiendo}
             required
           />
         </label>
 
-        {boxes && (
+        {eligiendo && (
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-semibold">Box</span>
+            <span className="text-sm font-semibold">Dónde entrar</span>
             <select
               className={campo}
-              value={boxId}
-              onChange={(e) => setBoxId(e.target.value)}
+              value={destino}
+              onChange={(e) => setDestino(e.target.value)}
               required
             >
-              <option value="">Elegí un box</option>
+              <option value="">Elegí un destino</option>
               {boxes.map((b) => (
                 <option key={b.id} value={b.id}>{b.nombre}</option>
               ))}
+              {panel && <option value={PANEL}>Panel de administración</option>}
             </select>
           </label>
         )}
@@ -123,10 +136,10 @@ export default function LoginOperador() {
 
         <button
           type="submit"
-          disabled={enviando || (!!boxes && !boxId)}
+          disabled={enviando || (eligiendo && !destino)}
           className="mt-2 rounded-xl bg-gris-principal px-6 py-4 text-lg font-semibold text-white disabled:bg-gainsboro disabled:text-gris-80"
         >
-          {enviando ? "Un momento…" : boxes ? "Entrar al box" : "Continuar"}
+          {enviando ? "Un momento…" : eligiendo ? "Entrar" : "Continuar"}
         </button>
       </form>
     </main>

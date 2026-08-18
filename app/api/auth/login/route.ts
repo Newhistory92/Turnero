@@ -5,7 +5,9 @@ import { firmarCookie, NOMBRE_COOKIE } from "@/lib/auth/sesion"
 export async function POST(req: Request) {
   const { usuario, clave, boxId } = await req.json()
 
-  if (!usuario || !clave || !boxId) {
+  // boxId null es explicito: es la sesion del panel. Undefined es un dato
+  // que falta, y eso si es un error del cliente.
+  if (!usuario || !clave || boxId === undefined) {
     return NextResponse.json({ ok: false, mensaje: "Faltan datos" }, { status: 400 })
   }
 
@@ -18,6 +20,7 @@ export async function POST(req: Request) {
     ok: true,
     empleado: r.empleado,
     boxId: r.boxId,
+    rol: r.rol,
   })
   res.cookies.set(NOMBRE_COOKIE, firmarCookie(r.sesionId), {
     httpOnly: true,

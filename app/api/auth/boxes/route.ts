@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { verificarCredencial } from "@/lib/auth/institucional"
-import { boxesDe } from "@/lib/auth/operador"
+import { accesoDe } from "@/lib/auth/operador"
+import { puedeVerCatalogo } from "@/lib/admin/acceso"
 
 export async function POST(req: Request) {
   const { usuario, clave } = await req.json()
@@ -16,13 +17,16 @@ export async function POST(req: Request) {
     )
   }
 
-  const boxes = await boxesDe(credencial.usuario.documento)
-  if (boxes.length === 0) {
+  const { boxes, rol } = await accesoDe(credencial.usuario.documento)
+  const panel = rol !== null && puedeVerCatalogo(rol)
+
+  // Sin boxes y sin panel no hay nada que ofrecerle.
+  if (boxes.length === 0 && !panel) {
     return NextResponse.json(
       { ok: false, mensaje: "Tu usuario es válido pero no estás habilitado en el turnero" },
       { status: 403 }
     )
   }
 
-  return NextResponse.json({ ok: true, boxes })
+  return NextResponse.json({ ok: true, boxes, panel })
 }
