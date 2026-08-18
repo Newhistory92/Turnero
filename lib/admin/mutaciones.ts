@@ -9,13 +9,11 @@ import {
   validarDiasSemana,
   validarIcono,
   validarPrefijo,
+  type ErrorCampo,
 } from "./validaciones"
 import { contarReferencias, sePuedeBorrar, type Entidad } from "./referencias"
 
-export interface ErrorCampo {
-  campo: string
-  mensaje: string
-}
+export type { ErrorCampo }
 
 export type Resultado = { ok: true } | { ok: false; errores: ErrorCampo[] }
 
