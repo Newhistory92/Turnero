@@ -21,6 +21,7 @@ model Ala {
   sede            Sede      @relation(fields: [sedeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   nombre          String
   orden           Int
+  activa          Boolean   @default(true)
   boxes           Box[]
   tramitesDestino Tramite[] @relation("TramiteDestinoAla")
 
@@ -33,6 +34,7 @@ model Piso {
   sede            Sede      @relation(fields: [sedeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   nombre          String
   nivel           Int
+  activa          Boolean   @default(true)
   boxes           Box[]
   tramitesDestino Tramite[] @relation("TramiteDestinoPiso")
 
@@ -173,8 +175,8 @@ model SesionOperador {
   id           String    @id @default(uuid())
   empleadoId   String
   empleado     Empleado  @relation(fields: [empleadoId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  boxId        String
-  box          Box       @relation(fields: [boxId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  boxId        String?
+  box          Box?      @relation(fields: [boxId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   inicio       DateTime  @default(now())
   fin          DateTime?
   ultimoLatido DateTime  @default(now())

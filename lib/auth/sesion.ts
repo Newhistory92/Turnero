@@ -17,9 +17,18 @@ function vencimiento(): Date {
 
 export async function abrirSesion(
   empleadoId: string,
-  boxId: string
+  boxId: string | null
 ): Promise<ResultadoApertura> {
   try {
+    // Sin box no hay recurso fisico que ocupar: ni asignacion que verificar
+    // ni exclusividad que imponer. Es la sesion del panel de administracion.
+    if (boxId === null) {
+      const sesion = await prisma.sesionOperador.create({
+        data: { empleadoId, boxId: null },
+      })
+      return { ok: true, sesionId: sesion.id }
+    }
+
     const asignado = await prisma.empleadoBox.findUnique({
       where: { empleadoId_boxId: { empleadoId, boxId } },
     })
@@ -74,7 +83,7 @@ export async function cerrarSesion(sesionId: string): Promise<void> {
 
 export async function sesionActiva(
   sesionId: string
-): Promise<{ id: string; empleadoId: string; boxId: string } | null> {
+): Promise<{ id: string; empleadoId: string; boxId: string | null } | null> {
   const s = await prisma.sesionOperador.findFirst({
     where: { id: sesionId, fin: null },
   })

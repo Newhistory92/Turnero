@@ -69,7 +69,9 @@ export function montarTurnero(io: IoServer): void {
 
     socket.on("ENTRAR_BOX", async (_datos, ack?: (r: unknown) => void) => {
       const sesion = await sesionDelSocket(socket)
-      if (!sesion) {
+      // Una sesion sin box es la del panel de administracion: tiene cookie
+      // valida pero no le corresponde el canal del operador.
+      if (!sesion || sesion.boxId === null) {
         ack?.({ ok: false, codigo: "SIN_SESION", mensaje: "Iniciá sesión de nuevo" })
         return
       }
