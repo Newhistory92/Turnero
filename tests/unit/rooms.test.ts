@@ -65,6 +65,30 @@ describe("ruteo de TURNO_DERIVADO", () => {
   })
 })
 
+describe("la TV del ala se entera de que el llamado terminó", () => {
+  const ctx = {
+    ala: "Norte",
+    piso: "Planta Baja",
+    boxId: "box-1",
+    tramiteBoxIds: ["box-1"],
+  }
+
+  // Sin esto la pantalla nunca refresca y sigue mostrando en grande a alguien
+  // que ya esta sentado en el box.
+  it.each(["TURNO_INICIADO", "TURNO_AUSENTE", "TURNO_DERIVADO"] as const)(
+    "%s llega al room del ala",
+    (evento) => {
+      expect(destinatarios(evento, ctx)).toContain("ala:norte")
+    }
+  )
+
+  it("TURNO_FINALIZADO no necesita llegar al ala", () => {
+    // Solo puede venir de "atendiendo", y para entonces el turno ya bajó a la
+    // lista de anteriores: no hay nada que refrescar.
+    expect(destinatarios("TURNO_FINALIZADO", ctx)).not.toContain("ala:norte")
+  })
+})
+
 describe("slug exportado", () => {
   it("normaliza igual que los nombres de room", () => {
     expect(slug("Norte")).toBe("norte")

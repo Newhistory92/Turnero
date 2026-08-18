@@ -33,11 +33,22 @@ export function usarSocketPantalla(ala: string) {
     })
     s.on("disconnect", () => setConectado(false))
 
-    // Solo estos dos eventos llegan al room del ala. Ante cualquiera de los dos
-    // se pide el snapshot completo: una sola proyeccion, sin deltas que se
-    // desincronicen del servidor.
-    s.on("TURNO_LLAMADO", () => refrescar(s))
-    s.on("TURNO_RELLAMADO", () => refrescar(s))
+    // Ante cualquiera de estos se pide el snapshot completo: una sola
+    // proyeccion, sin deltas que se desincronicen del servidor.
+    //
+    // Los dos primeros traen un llamado nuevo al tope. Los tres siguientes lo
+    // sacan, y por eso tienen que estar: sin ellos la TV se queda llamando a
+    // alguien que ya fue atendido. Ninguno de los tres hace sonar la
+    // campanilla, porque el eventoId del tope no avanza a uno nuevo.
+    for (const evento of [
+      "TURNO_LLAMADO",
+      "TURNO_RELLAMADO",
+      "TURNO_INICIADO",
+      "TURNO_AUSENTE",
+      "TURNO_DERIVADO",
+    ]) {
+      s.on(evento, () => refrescar(s))
+    }
 
     return () => {
       s.close()

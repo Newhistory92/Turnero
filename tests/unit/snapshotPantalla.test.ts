@@ -8,6 +8,7 @@ const fila = (over: Partial<FilaLlamado> = {}): FilaLlamado => ({
   nombreAfiliado: "González, María",
   dni: "20123456",
   timestamp: new Date("2026-08-14T14:32:00Z"),
+  estadoTurno: "llamado",
   ...over,
 })
 
@@ -53,6 +54,39 @@ describe("proyectarLlamados", () => {
     expect(Object.keys(s.actual!).sort()).toEqual(
       ["boxNombre", "eventoId", "identificacion", "llamadoEn", "numero"]
     )
+  })
+
+  it("atendido deja de ser el actual y baja a los anteriores", () => {
+    const s = proyectarLlamados("Norte", [
+      fila({ eventoId: "e1", numero: "P01", estadoTurno: "atendiendo" }),
+      fila({ eventoId: "e2", numero: "T04" }),
+    ])
+    expect(s.actual).toBeNull()
+    expect(s.ultimos.map((l) => l.numero)).toEqual(["P01", "T04"])
+  })
+
+  it("ausente y derivado tampoco siguen llamandose", () => {
+    for (const e of ["ausente", "derivado", "finalizado"]) {
+      const s = proyectarLlamados("Norte", [fila({ estadoTurno: e })])
+      expect(s.actual, `estado ${e}`).toBeNull()
+      expect(s.ultimos).toHaveLength(1)
+    }
+  })
+
+  it("finalizar no revive el llamado", () => {
+    // El bug: el turno pasaba por atendiendo, se finalizaba, y el numero volvia
+    // a aparecer llamando en grande porque la proyeccion trataba todo estado
+    // que no fuera "atendiendo" como si el turno siguiera esperando.
+    const s = proyectarLlamados("Norte", [fila({ numero: "P01", estadoTurno: "finalizado" })])
+    expect(s.actual).toBeNull()
+  })
+
+  it("sin actual, los anteriores igual topean en cuatro", () => {
+    const filas = ["e1", "e2", "e3", "e4", "e5"].map((id) => fila({ eventoId: id }))
+    filas[0].estadoTurno = "atendiendo"
+    const s = proyectarLlamados("Norte", filas)
+    expect(s.actual).toBeNull()
+    expect(s.ultimos.map((l) => l.eventoId)).toEqual(["e1", "e2", "e3", "e4"])
   })
 
   it("el nombre y el DNI nunca aparecen juntos", () => {

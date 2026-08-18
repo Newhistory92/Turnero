@@ -22,14 +22,20 @@ export interface FilaLlamado {
   nombreAfiliado: string | null
   dni: string | null
   timestamp: Date
+  /** Estado actual del turno, no del evento: el evento de llamado no cambia. */
+  estadoTurno: string
 }
 
 export const CUANTOS_ULTIMOS = 4
 
 /**
- * Proyeccion pura: la primera fila es el llamado actual y las siguientes son la
- * repesca para quien levanto la vista tarde. Se separa de la consulta para
- * poder probarla sin base.
+ * Proyeccion pura. Se separa de la consulta para poder probarla sin base.
+ *
+ * El bloque grande es "a quien estamos llamando", no "a quien llamamos ultimo".
+ * Por eso `actual` existe solo mientras el turno del tope sigue en estado
+ * "llamado": apenas el operador inicia la atencion —o lo marca ausente, o lo
+ * deriva— ese turno baja a `ultimos` y el bloque grande queda libre. Dejarlo
+ * arriba haria que la TV siga llamando a alguien que ya esta sentado en el box.
  *
  * LlamadoPantalla no tiene campo de tramite y no lo va a tener: el catalogo
  * incluye "Protesis" y "Programa Materno", y un nombre junto a un tramite
@@ -44,10 +50,16 @@ export function proyectarLlamados(ala: string, filas: FilaLlamado[]): SnapshotPa
     llamadoEn: f.timestamp.toISOString(),
   })
 
+  // El estado es el del turno hoy, no el del evento: el evento de llamado no
+  // cambia nunca, y es justamente el turno el que avanza por debajo.
+  const enEspera = filas[0]?.estadoTurno === "llamado"
+
   return {
     ala,
-    actual: filas[0] ? aLlamado(filas[0]) : null,
-    ultimos: filas.slice(1, 1 + CUANTOS_ULTIMOS).map(aLlamado),
+    actual: enEspera ? aLlamado(filas[0]) : null,
+    // Cuando el tope ya no espera, entra el primero a la repesca: es el llamado
+    // mas reciente y quien levanto la vista tarde todavia lo necesita.
+    ultimos: (enEspera ? filas.slice(1) : filas).slice(0, CUANTOS_ULTIMOS).map(aLlamado),
   }
 }
 
@@ -78,7 +90,7 @@ export async function armarSnapshotPantalla(ala: string): Promise<SnapshotPantal
       id: true,
       timestamp: true,
       box: { select: { nombre: true } },
-      turno: { select: { numero: true, nombreAfiliado: true, dni: true } },
+      turno: { select: { numero: true, nombreAfiliado: true, dni: true, estado: true } },
     },
   })
 
@@ -91,6 +103,7 @@ export async function armarSnapshotPantalla(ala: string): Promise<SnapshotPantal
       nombreAfiliado: e.turno.nombreAfiliado,
       dni: e.turno.dni,
       timestamp: e.timestamp,
+      estadoTurno: e.turno.estado,
     }))
   )
 }

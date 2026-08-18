@@ -49,10 +49,19 @@ export function destinatarios(
       if (ctx.boxId) rooms.add(roomBox(ctx.boxId))
       break
 
-    case "TURNO_AUSENTE":
+    // Los tres eventos que sacan un turno del estado "llamado". La TV del ala
+    // los necesita: sin ellos sigue mostrando en grande a alguien que ya esta
+    // sentado en el box. TURNO_FINALIZADO no entra porque solo puede venir de
+    // "atendiendo", y para entonces el turno ya bajo a la lista de anteriores.
     case "TURNO_INICIADO":
-    case "TURNO_FINALIZADO":
+    case "TURNO_AUSENTE":
     case "TURNO_DERIVADO":
+      rooms.add(roomAla(ctx.ala))
+      if (ctx.boxId) rooms.add(roomBox(ctx.boxId))
+      ctx.tramiteBoxIds.forEach((id) => rooms.add(roomBox(id)))
+      break
+
+    case "TURNO_FINALIZADO":
       if (ctx.boxId) rooms.add(roomBox(ctx.boxId))
       ctx.tramiteBoxIds.forEach((id) => rooms.add(roomBox(id)))
       break

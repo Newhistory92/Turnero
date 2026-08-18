@@ -27,7 +27,7 @@ administración de pantallas (SP4) y métricas de llamado (SP5).
 | Dato personal en pantalla | Nombre completo; DNI sólo si no hay nombre | Ver §3 |
 | Trámite en pantalla | **No se muestra** | Ver §3 |
 | Turnos derivados | Se ven igual que cualquier llamado | Sin marca especial: un llamado es un llamado |
-| Estado inactivo | Mantiene el último llamado siempre | Al arranque del día, cuando no hay ninguno, muestra el logo |
+| Estado inactivo | Muestra el logo cuando no hay turno en estado `llamado` | Cuando el turno pasa a `atendiendo`, `finalizado`, etc., `actual` queda nulo y aparece el logo; sigue en `ultimos` |
 | Obtención del estado | Re-snapshot completo en cada evento | Una sola proyección; cliente y servidor no pueden divergir |
 
 ---
@@ -65,15 +65,16 @@ ala.
 Un evento nuevo, `ENTRAR_PANTALLA { ala }`, **sin autenticación**. Une el socket a `roomAla(ala)` y
 devuelve el snapshot por ack.
 
-`server/rooms.ts` **no se modifica**. `TURNO_LLAMADO` y `TURNO_RELLAMADO` ya emiten a `roomAla(ctx.ala)`
-desde SP0.
+`server/rooms.ts` **se modifica** para que `TURNO_INICIADO`, `TURNO_AUSENTE` y `TURNO_DERIVADO`
+también emitan a `roomAla(ctx.ala)`. Sin esto, la pantalla mantiene el número en grande cuando el
+operador ya inició la atención o marcó al paciente como ausente.
 
 ### 4.3 Flujo
 
 1. La TV abre `/pantalla/norte` y conecta el socket.
 2. Emite `ENTRAR_PANTALLA { ala: "Norte" }` y recibe `SnapshotPantalla`.
-3. Ante cualquier `TURNO_LLAMADO` o `TURNO_RELLAMADO` que llegue al room, vuelve a emitir
-   `ENTRAR_PANTALLA` y reemplaza el snapshot completo.
+3. Ante cualquier `TURNO_LLAMADO`, `TURNO_RELLAMADO`, `TURNO_INICIADO`, `TURNO_AUSENTE` o
+   `TURNO_DERIVADO` que llegue al room, vuelve a emitir `ENTRAR_PANTALLA` y reemplaza el snapshot.
 4. Si el `eventoId` del llamado actual cambió respecto del render anterior, suena la campanilla y el
    número destella.
 
@@ -128,8 +129,9 @@ El primero es `actual`; el resto, `ultimos`. Aprovecha el índice `@@index([time
 Esta forma resuelve sola tres cosas:
 
 - **Un rellamado vuelve a subir el turno al tope**, que es exactamente lo que se busca al rellamar.
-- **El último llamado sobrevive aunque el turno ya esté finalizado**, porque el evento no se borra.
-  Es lo que sostiene "mantiene el último llamado siempre".
+- **`actual` existe solo cuando el turno está en estado `llamado`**. Si el operador inicia, marca
+  ausente o finaliza, `actual` se pone nulo y el turno baja a `ultimos`. La pantalla muestra el logo
+  de espera hasta el próximo llamado; el evento de ese turno sigue visible en la lista lateral.
 - **`eventoId` como identidad** hace que rellamar el mismo número cuente como llamado nuevo, y por lo
   tanto suene la campanilla.
 
@@ -253,7 +255,7 @@ arregla, en vez de quedar muda en silencio.
 | Se cae el socket | Conserva el último llamado. Indicador en ámbar, "Sin conexión". socket.io reintenta solo |
 | Vuelve el socket | Re-snapshot. No suena campanilla si el tope no cambió |
 | Se cae SQL Server | El ack falla; la pantalla no cambia nada |
-| No hubo llamados hoy | Logo institucional centrado |
+| No hay turno actualmente en estado `llamado` | Logo institucional centrado (con animación de espera) |
 
 **La pantalla nunca se vacía ni muestra un error a pantalla completa.** En un pasillo, una TV en
 blanco parece rota; una TV con un dato viejo sigue sirviendo a quien está esperando. El indicador de
@@ -306,9 +308,10 @@ Sin archivo de audio: la campanilla se sintetiza (§7.1).
 
 **Se modifica:**
 - `server/index.ts`, para registrar `ENTRAR_PANTALLA`.
-- `server/rooms.ts`, **sólo para exportar la función `slug` que ya existe**. La URL de la pantalla y
-  el nombre del room tienen que normalizar igual; duplicar esa función es exactamente la forma en que
-  la TV terminaría unida a un room al que nadie emite.
+- `server/rooms.ts`:
+  - Se exporta la función `slug` que ya existía (URL de la pantalla y nombre del room normalizan igual).
+  - Se agregan `TURNO_INICIADO`, `TURNO_AUSENTE` y `TURNO_DERIVADO` al room del ala, para que la
+    pantalla actualice cuando el operador inicia atención, marca ausente o deriva.
 
 **Se elimina:** `app/public-display/`.
 **No se toca:** `prisma/schema.prisma`. SP3 no requiere migración.

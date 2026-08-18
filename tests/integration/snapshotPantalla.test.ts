@@ -18,14 +18,14 @@ async function sembrarLlamado(
   tramiteId: string,
   numero: string,
   tipo: "llamado" | "rellamado",
-  datos: { nombreAfiliado?: string | null; dni?: string | null } = {}
+  datos: { nombreAfiliado?: string | null; dni?: string | null; estado?: string } = {}
 ) {
   const turno = await prisma.turno.create({
     data: {
       numero,
       fecha: hoyFecha(),
       tramiteId,
-      estado: "llamado",
+      estado: datos.estado ?? "llamado",
       boxId,
       dni: datos.dni ?? null,
       nombreAfiliado: datos.nombreAfiliado ?? null,
@@ -84,5 +84,28 @@ describe("armarSnapshotPantalla", () => {
 
     const s = await armarSnapshotPantalla(box.ala.nombre)
     expect(s.actual?.numero).toBe("B01")
+  })
+
+  it("el turno atendido baja a los anteriores y libera el bloque grande", async () => {
+    const box = await prisma.box.findFirstOrThrow({ include: { ala: true } })
+    const bt = await prisma.boxTramite.findFirstOrThrow({ where: { boxId: box.id } })
+
+    await sembrarLlamado(box.id, bt.tramiteId, "C01", "llamado")
+    await sembrarLlamado(box.id, bt.tramiteId, "C02", "llamado", { estado: "atendiendo" })
+
+    const s = await armarSnapshotPantalla(box.ala.nombre)
+    expect(s.actual).toBeNull()
+    expect(s.ultimos.map((l) => l.numero)).toEqual(["C02", "C01"])
+  })
+
+  it("finalizar no devuelve el número al bloque grande", async () => {
+    const box = await prisma.box.findFirstOrThrow({ include: { ala: true } })
+    const bt = await prisma.boxTramite.findFirstOrThrow({ where: { boxId: box.id } })
+
+    await sembrarLlamado(box.id, bt.tramiteId, "D01", "llamado", { estado: "finalizado" })
+
+    const s = await armarSnapshotPantalla(box.ala.nombre)
+    expect(s.actual).toBeNull()
+    expect(s.ultimos.map((l) => l.numero)).toEqual(["D01"])
   })
 })
