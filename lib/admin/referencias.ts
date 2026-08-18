@@ -59,11 +59,27 @@ export async function contarReferencias(
         boxes: await prisma.box.count({ where: { pisoId: id } }),
       }
     case "sede":
+      const sedeBoxes = await prisma.box.count({
+        where: {
+          OR: [
+            { ala: { sedeId: id } },
+            { piso: { sedeId: id } },
+          ],
+        },
+      })
+      const sedeTramites = await prisma.tramite.count({
+        where: {
+          OR: [
+            { destinoAla: { sedeId: id } },
+            { destinoPiso: { sedeId: id } },
+          ],
+        },
+      })
       return {
         turnos: 0,
         sesiones: 0,
-        tramites: await prisma.tramite.count({ where: { sedeId: id } }),
-        boxes: await prisma.box.count({ where: { sedeId: id } }),
+        tramites: sedeTramites,
+        boxes: sedeBoxes,
       }
   }
 }

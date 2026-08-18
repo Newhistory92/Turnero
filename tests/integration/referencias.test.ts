@@ -52,4 +52,17 @@ describe("contarReferencias", () => {
     expect(refs.boxes).toBeGreaterThan(0)
     expect(sePuedeBorrar(refs)).toBe(false)
   })
+
+  it("una sede recién creada (sin alas ni boxes) se puede borrar", async () => {
+    const s = await prisma.sede.create({
+      data: { nombre: "Sede Temporal Test" },
+    })
+    const refs = await contarReferencias("sede", s.id)
+    expect(refs.turnos).toBe(0)
+    expect(refs.sesiones).toBe(0)
+    expect(refs.tramites).toBe(0)
+    expect(refs.boxes).toBe(0)
+    expect(sePuedeBorrar(refs)).toBe(true)
+    await prisma.sede.delete({ where: { id: s.id } })
+  })
 })
