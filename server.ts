@@ -2,6 +2,7 @@ import { createServer } from "http"
 import { Server } from "socket.io"
 import next from "next"
 import { montarTurnero } from "./server/index"
+import { registrarIo } from "./server/io"
 import { programarJobs } from "./server/jobs/programador"
 
 const dev = process.env.NODE_ENV !== "production"
@@ -15,6 +16,7 @@ app.prepare().then(() => {
   const httpServer = createServer((req, res) => handle(req, res))
   const io = new Server(httpServer, { cors: { origin: "*", methods: ["GET", "POST"] } })
 
+  registrarIo(io)
   montarTurnero(io)
   programarJobs()
 
