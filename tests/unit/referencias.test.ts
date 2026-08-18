@@ -3,7 +3,7 @@ import { sePuedeBorrar } from "@/lib/admin/referencias"
 
 describe("sePuedeBorrar", () => {
   it("sin referencias, se puede", () => {
-    expect(sePuedeBorrar({ turnos: 0, contadores: 0 })).toBe(true)
+    expect(sePuedeBorrar({ turnos: 0, sesiones: 0, tramites: 0, boxes: 0 })).toBe(true)
   })
 
   it("sin ninguna clave, se puede", () => {
@@ -11,10 +11,10 @@ describe("sePuedeBorrar", () => {
   })
 
   it("una sola referencia alcanza para bloquear", () => {
-    expect(sePuedeBorrar({ turnos: 1, contadores: 0 })).toBe(false)
+    expect(sePuedeBorrar({ turnos: 1, sesiones: 0, tramites: 0, boxes: 0 })).toBe(false)
   })
 
   it("bloquea aunque la referencia esté en la última clave", () => {
-    expect(sePuedeBorrar({ turnos: 0, eventos: 0, sesiones: 3 })).toBe(false)
+    expect(sePuedeBorrar({ turnos: 0, sesiones: 0, tramites: 0, boxes: 3 })).toBe(false)
   })
 })

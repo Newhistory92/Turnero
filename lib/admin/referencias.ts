@@ -2,7 +2,12 @@ import { prisma } from "@/lib/db"
 
 export type Entidad = "sede" | "ala" | "piso" | "box" | "categoria" | "tramite"
 
-export type Referencias = Record<string, number>
+export interface Referencias {
+  turnos: number
+  sesiones: number
+  tramites: number
+  boxes: number
+}
 
 export function sePuedeBorrar(refs: Referencias): boolean {
   return Object.values(refs).every((n) => n === 0)
@@ -21,35 +26,44 @@ export async function contarReferencias(
     case "tramite":
       return {
         turnos: await prisma.turno.count({ where: { tramiteId: id } }),
-        contadores: await prisma.contador.count({ where: { tramiteId: id } }),
-        boxes: await prisma.boxTramite.count({ where: { tramiteId: id } }),
+        sesiones: 0,
+        tramites: 0,
+        boxes: 0,
       }
     case "box":
       return {
         turnos: await prisma.turno.count({ where: { boxId: id } }),
-        eventos: await prisma.turnoEvento.count({ where: { boxId: id } }),
         sesiones: await prisma.sesionOperador.count({ where: { boxId: id } }),
-        empleados: await prisma.empleadoBox.count({ where: { boxId: id } }),
-        tramites: await prisma.boxTramite.count({ where: { boxId: id } }),
+        tramites: 0,
+        boxes: 0,
       }
     case "categoria":
       return {
+        turnos: 0,
+        sesiones: 0,
         tramites: await prisma.tramite.count({ where: { categoriaId: id } }),
+        boxes: 0,
       }
     case "ala":
       return {
-        boxes: await prisma.box.count({ where: { alaId: id } }),
+        turnos: 0,
+        sesiones: 0,
         tramites: await prisma.tramite.count({ where: { destinoAlaId: id } }),
+        boxes: await prisma.box.count({ where: { alaId: id } }),
       }
     case "piso":
       return {
-        boxes: await prisma.box.count({ where: { pisoId: id } }),
+        turnos: 0,
+        sesiones: 0,
         tramites: await prisma.tramite.count({ where: { destinoPisoId: id } }),
+        boxes: await prisma.box.count({ where: { pisoId: id } }),
       }
     case "sede":
       return {
-        alas: await prisma.ala.count({ where: { sedeId: id } }),
-        pisos: await prisma.piso.count({ where: { sedeId: id } }),
+        turnos: 0,
+        sesiones: 0,
+        tramites: await prisma.tramite.count({ where: { sedeId: id } }),
+        boxes: await prisma.box.count({ where: { sedeId: id } }),
       }
   }
 }
