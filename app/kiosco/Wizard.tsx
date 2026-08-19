@@ -94,8 +94,8 @@ export function Wizard({
 
   const reiniciar = useCallback(() => {
     if (catalogoVencido) {
-      setCatalogoVencido(false)
       router.refresh()
+      setCatalogoVencido(false)
     }
     setPaso({ nombre: "dni" })
     setDni("")
