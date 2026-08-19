@@ -80,4 +80,10 @@ describe("parsearRango", () => {
     const { corregido } = parsearRango("2026-08-01", undefined, AHORA)
     expect(corregido).toBe(true)
   })
+
+  it("un rango de más de 366 días cae al mes y se marca corregido", () => {
+    const { rango, corregido } = parsearRango("2025-01-01", "2026-01-03", AHORA)
+    expect(corregido).toBe(true)
+    expect(aClaveFecha(rango.desde)).toBe("2026-07-21")
+  })
 })

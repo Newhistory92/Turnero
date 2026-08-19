@@ -1,7 +1,7 @@
 import type { RangoFechas } from "./tipos"
 import { aClaveFecha } from "./fechas"
 
-// Se reexporta para que las paginas la traigan del mismo modulo del que ya
+// Se reexporta para que las paginas traigan del mismo modulo del que ya
 // importan presetA, en vez de tener que conocer dos rutas.
 export { aClaveFecha }
 
@@ -63,6 +63,12 @@ export function parsearRango(
   const h = hasta ? aFechaLocal(hasta) : null
 
   if (!d || !h || d.getTime() > h.getTime()) {
+    return { rango: presetA("mes", ahora), corregido: true }
+  }
+
+  // Validar que el rango no exceda 366 dias
+  const diasTranscurridos = Math.floor((h.getTime() - d.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  if (diasTranscurridos > 366) {
     return { rango: presetA("mes", ahora), corregido: true }
   }
 
