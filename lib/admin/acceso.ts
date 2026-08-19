@@ -2,9 +2,9 @@ import { cookies } from "next/headers"
 import { prisma } from "@/lib/db"
 import { leerCookie, NOMBRE_COOKIE, sesionActiva } from "@/lib/auth/sesion"
 
-export type Rol = "operador" | "supervisor" | "admin"
+export type Rol = "operador" | "supervisor" | "director" | "admin"
 
-export const ROLES = ["operador", "supervisor", "admin"] as const
+export const ROLES = ["operador", "supervisor", "director", "admin"] as const
 
 export function esRol(v: string): v is Rol {
   return (ROLES as readonly string[]).includes(v)
@@ -16,6 +16,24 @@ export function puedeVerCatalogo(rol: Rol): boolean {
 
 export function puedeEditarCatalogo(rol: Rol): boolean {
   return rol === "admin"
+}
+
+/**
+ * El tablero es de lectura: lo ve todo el que supervisa, no solo quien
+ * administra. director existe para eso — mas alcance de lectura sin tocar
+ * el catalogo.
+ */
+export function puedeVerTablero(rol: Rol): boolean {
+  return rol === "supervisor" || rol === "director" || rol === "admin"
+}
+
+/**
+ * La productividad mide personas. Se separa del resto del tablero a
+ * proposito: el supervisor ve el volumen y las derivaciones de su area,
+ * pero el rendimiento individual queda arriba.
+ */
+export function puedeVerProductividad(rol: Rol): boolean {
+  return rol === "director" || rol === "admin"
 }
 
 export interface Actor {
