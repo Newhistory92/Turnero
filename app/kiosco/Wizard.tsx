@@ -91,6 +91,8 @@ export function Wizard({
   const [paso, setPaso] = useState<Paso>({ nombre: "dni" })
   const [dni, setDni] = useState("")
   const [nombreAfiliado, setNombreAfiliado] = useState<string | null>(null)
+  const router = useRouter()
+  const [catalogoVencido, setCatalogoVencido] = useState(false)
 
   const reiniciar = useCallback(() => {
     if (catalogoVencido) {
@@ -136,9 +138,6 @@ export function Wizard({
       temporizador.detener()
     }
   }, [reiniciar])
-
-  const router = useRouter()
-  const [catalogoVencido, setCatalogoVencido] = useState(false)
 
   // El admin guardo un cambio. Si el kiosco esta ocioso se aplica ya; si hay
   // alguien usandolo, se anota y se aplica cuando vuelva al inicio.

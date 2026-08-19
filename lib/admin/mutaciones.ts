@@ -214,7 +214,10 @@ export async function guardarSimple(
   const malo = fallo(
     campo("nombre", validarNombre(d.nombre)),
     entidad === "sede" ? null : campo("posicion", validarEntero(d.posicion, 0, 9999)),
-    entidad === "categoria" ? campo("icono", validarIcono(d.icono ?? "")) : null
+    entidad === "categoria" ? campo("icono", validarIcono(d.icono ?? "")) : null,
+    entidad === "ala" || entidad === "piso"
+      ? campo("sedeId", !d.sedeId ? "Elegí una sede" : undefined)
+      : null
   )
   if (malo) return malo
 
