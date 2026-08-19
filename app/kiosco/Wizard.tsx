@@ -93,11 +93,15 @@ export function Wizard({
   const [nombreAfiliado, setNombreAfiliado] = useState<string | null>(null)
 
   const reiniciar = useCallback(() => {
+    if (catalogoVencido) {
+      setCatalogoVencido(false)
+      router.refresh()
+    }
     setPaso({ nombre: "dni" })
     setDni("")
     // Borrar el DNI del usuario anterior no es UX, es privacidad.
     setNombreAfiliado(null)
-  }, [])
+  }, [catalogoVencido, router])
 
   const volver = useCallback(() => {
     setPaso((p) => {
