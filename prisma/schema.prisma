@@ -92,6 +92,7 @@ model Tramite {
   boxes                  BoxTramite[]
   turnos                 Turno[]
   contadores             Contador[]
+  alcances               AlcanceMetrica[]
 }
 
 model BoxTramite {
@@ -139,6 +140,8 @@ model TurnoEvento {
 
   @@index([turnoId])
   @@index([timestamp])
+  @@index([empleadoId, timestamp])
+  @@index([boxId, timestamp])
 }
 
 model Contador {
@@ -160,6 +163,7 @@ model Empleado {
   boxes            EmpleadoBox[]
   sesiones         SesionOperador[]
   eventos          TurnoEvento[]
+  alcances         AlcanceMetrica[]
 }
 
 model EmpleadoBox {
@@ -191,4 +195,13 @@ model Kiosco {
   version              String?
   ultimoLatido         DateTime?
   ultimoErrorImpresion String?
+}
+
+model AlcanceMetrica {
+  empleadoId String
+  tramiteId  String
+  empleado   Empleado @relation(fields: [empleadoId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tramite    Tramite  @relation(fields: [tramiteId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([empleadoId, tramiteId])
 }
