@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 
 // crypto.randomUUID solo existe en contexto seguro (HTTPS/localhost).
 // En HTTP de red local (tótem) y en SSR no está disponible: fallback a Math.random.
@@ -16,7 +17,8 @@ function nuevoUuid(): string {
 }
 import { crearTemporizadorInactividad } from "@/lib/kiosco/inactividad"
 import { aplicarHardening } from "@/lib/kiosco/hardening"
-import { generarTurnoPorSocket, type TurnoDelServidor } from "@/lib/kiosco/socket"
+import { generarTurnoPorSocket, conexionKiosco, type TurnoDelServidor } from "@/lib/kiosco/socket"
+import { sePuedeRefrescar } from "@/lib/kiosco/catalogoVencido"
 import { formatearDni } from "@/lib/kiosco/dni"
 import { EncabezadoKiosco } from "./EncabezadoKiosco"
 import { PieKiosco } from "./PieKiosco"
@@ -130,6 +132,30 @@ export function Wizard({
       temporizador.detener()
     }
   }, [reiniciar])
+
+  const router = useRouter()
+  const [catalogoVencido, setCatalogoVencido] = useState(false)
+
+  // El admin guardo un cambio. Si el kiosco esta ocioso se aplica ya; si hay
+  // alguien usandolo, se anota y se aplica cuando vuelva al inicio.
+  useEffect(() => {
+    const s = conexionKiosco()
+    const alCambiar = () => setCatalogoVencido(true)
+    s.on("CATALOGO_ACTUALIZADO", alCambiar)
+    return () => {
+      s.off("CATALOGO_ACTUALIZADO", alCambiar)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!catalogoVencido) return
+    if (!sePuedeRefrescar(paso.nombre, dni)) return
+
+    setCatalogoVencido(false)
+    // La pagina del kiosco es un Server Component: refresh vuelve a leer el
+    // catalogo en el servidor y baja las categorias nuevas por props.
+    router.refresh()
+  }, [catalogoVencido, paso.nombre, dni, router])
 
   // Un requestId por sesion del wizard: si el toque se repite o la respuesta
   // se pierde, el servidor devuelve el mismo turno en vez de emitir otro.

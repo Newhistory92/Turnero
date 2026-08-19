@@ -28,7 +28,12 @@ export const TIMEOUT_GENERACION_MS = 10_000
 
 let socket: Socket | null = null
 
-function conexion(): Socket {
+/**
+ * El socket del kiosco, uno solo por pestaña. Lo usa generarTurnoPorSocket y
+ * tambien quien necesite escuchar eventos del servidor: abrir una segunda
+ * conexion duplicaria los avisos.
+ */
+export function conexionKiosco(): Socket {
   if (!socket) socket = io({ transports: ["websocket", "polling"] })
   return socket
 }
@@ -52,7 +57,7 @@ export function generarTurnoPorSocket(
 
     const t = setTimeout(() => resolve(fallo), TIMEOUT_GENERACION_MS)
 
-    conexion().emit("GENERAR_TURNO", cmd, (r: RespuestaGeneracion) => {
+    conexionKiosco().emit("GENERAR_TURNO", cmd, (r: RespuestaGeneracion) => {
       clearTimeout(t)
       resolve(r ?? fallo)
     })
