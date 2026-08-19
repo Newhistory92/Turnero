@@ -48,9 +48,47 @@ Todo vive en **`main`**, pusheado. No hay ramas de trabajo activas.
 derivación y los dos jobs diarios. `app/OperadorTurno/` retirado.
 
 El alta de empleados es por script: `npm run importar:empleados -- usuario1 usuario2`. La asignación
-de boxes se hace a mano en la base hasta que SP4 traiga el ABM.
+de boxes se hace a mano en la base hasta que SP4b traiga el ABM de empleados.
 
 **SP3 — COMPLETO.** Dos pantallas de llamado, una por ala, en `/pantalla/norte` y `/pantalla/sur`.
+
+**SP4a — COMPLETO.** Panel de administración del catálogo en `/admin`, con control de acceso por rol.
+
+Tres roles en `Empleado.rol`: `operador` (no entra), `supervisor` (ve el catálogo en sólo lectura) y
+`admin` (ve y edita). El chequeo se hace siempre en el servidor: los controles deshabilitados de la
+interfaz son cosméticos, y `lib/admin/mutaciones.ts` rechaza toda escritura que no venga de un admin.
+
+El primer admin se promueve a mano, porque el script de importación crea a todos como `operador`:
+
+```sql
+UPDATE Empleado SET rol = 'admin' WHERE dniInstitucional = '<documento>';
+```
+
+Después entra por `/operador/login` con sus credenciales institucionales y elige
+"Panel de administración" en el selector de destino.
+
+**Sesión sin box.** `SesionOperador.boxId` es nullable: una sesión sin box es una sesión de panel. No
+exige asignación en `EmpleadoBox` ni toma ningún box en exclusiva.
+
+**Las siete entidades se editan desde `/admin/catalogo/*`.** Desactivar es lo normal; el borrado
+definitivo aparece sólo cuando la entidad no tiene ninguna referencia, y se vuelve a verificar en el
+servidor al momento de borrar.
+
+**El prefijo del trámite tiene que ser único entre los activos.** El número del turno es prefijo más
+contador, y `Contador` es por trámite: dos trámites con prefijo `P` generan dos `P01` el mismo día.
+Al reactivar un trámite se revalida, por si el prefijo se le asignó a otro mientras estaba de baja.
+
+**Cada mutación invalida el caché antes de emitir `CATALOGO_ACTUALIZADO`.** Al revés, un cliente
+rápido recibiría el caché viejo. El evento acelera la propagación pero no sostiene la correctitud: el
+caché ya invalidado hace que cualquier `GET /api/catalogo` posterior traiga los datos nuevos.
+
+**El caché es un singleton en memoria del proceso**, así que `invalidarCatalogo()` sólo funciona con
+un único servidor Node. Al escalar horizontalmente hay que mover el caché afuera.
+
+**El kiosco difiere el cambio si está en uso.** Recarga al instante si está en el paso del DNI sin
+nada tipeado; si hay alguien en el medio del wizard, lo aplica al volver al inicio.
+
+
 Campanilla sintetizada, reloj y estado de conexión. `app/public-display/` retirado.
 
 Cada TV arranca Chrome apuntado a su URL. **Hay que lanzarlo con
@@ -324,7 +362,10 @@ Salieron de problemas concretos, no de preferencias:
 | SP1 | Kiosco v2 | **COMPLETO** |
 | SP2 | Panel de operador y motor de cola completo | **COMPLETO** |
 | SP3 | Pantallas de TV y audio por ala | **COMPLETO** |
-| SP4 | Panel de administración | Sin spec |
+| SP4a | ABM de catálogo y control de acceso por rol | **COMPLETO** |
+| SP4b | ABM de empleados y asignación de boxes | Sin spec |
+| SP4c | Panel del supervisor | Sin spec |
+| SP4d | Administración de dispositivos | Sin spec |
 | SP5 | Dashboard de estadísticas | Sin spec |
 
 SP2 a SP5 necesitan su propio ciclo de brainstorming → spec → plan. El modelo de datos de SP0 ya los
