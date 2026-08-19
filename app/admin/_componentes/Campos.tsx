@@ -184,30 +184,54 @@ export function CampoCasillas({
   opciones,
   marcados,
   soloLectura,
+  linkAgregar,
 }: {
   etiqueta: string
   campo: string
   opciones: { id: string; nombre: string }[]
   marcados: string[]
   soloLectura: boolean
+  linkAgregar?: { href: string; texto: string }
 }) {
   return (
     <fieldset className="flex flex-col gap-1">
-      <legend className="text-sm font-semibold">{etiqueta}</legend>
-      <div className="flex flex-wrap gap-3">
-        {opciones.map((o) => (
-          <label key={o.id} className="flex items-center gap-1 text-sm">
-            <input
-              type="checkbox"
-              name={campo}
-              value={o.id}
-              defaultChecked={marcados.includes(o.id)}
-              disabled={soloLectura}
-            />
-            {o.nombre}
-          </label>
-        ))}
+      <div className="flex items-center gap-3">
+        <legend className="text-sm font-semibold">{etiqueta}</legend>
+        {linkAgregar && (
+          <a href={linkAgregar.href} className="text-sm text-osp underline">
+            {linkAgregar.texto}
+          </a>
+        )}
       </div>
+      {opciones.length === 0 ? (
+        <p className="text-sm text-gris-80">
+          No hay trámites creados aún.
+          {linkAgregar && (
+            <>
+              {" "}
+              <a href={linkAgregar.href} className="underline">
+                Creá uno primero
+              </a>
+              .
+            </>
+          )}
+        </p>
+      ) : (
+        <div className="flex flex-wrap gap-3">
+          {opciones.map((o) => (
+            <label key={o.id} className="flex items-center gap-1 text-sm">
+              <input
+                type="checkbox"
+                name={campo}
+                value={o.id}
+                defaultChecked={marcados.includes(o.id)}
+                disabled={soloLectura}
+              />
+              {o.nombre}
+            </label>
+          ))}
+        </div>
+      )}
     </fieldset>
   )
 }

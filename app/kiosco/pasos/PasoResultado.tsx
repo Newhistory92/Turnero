@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
+import { motion } from "framer-motion"
 import { Clock, Printer } from "lucide-react"
 import { BandaDestino } from "../BandaDestino"
 import { Ticket, ESTILOS_TICKET } from "../imprimir/Ticket"
@@ -54,18 +55,40 @@ export function PasoResultado({
         {/* Saco el turno antes de que abriera: el ticket ya esta impreso y no
             dice el horario, asi que el aviso tiene que llegarle aca. */}
         {turno.avisoHorario && (
-          <div
-            className="flex items-start gap-4 rounded-2xl border-2 border-osp bg-white p-6"
-            data-testid="aviso-horario"
-          >
-            <Clock className="h-10 w-10 shrink-0 text-osp" aria-hidden />
-            <p className="text-k-sub">
-              Todavía no comenzó la atención. Lo atienden de{" "}
-              <strong>
-                {turno.avisoHorario.desde} a {turno.avisoHorario.hasta}
-              </strong>
-              . Conserve su ticket y aguarde.
-            </p>
+          <div className="flex flex-col items-stretch gap-2" data-testid="aviso-horario">
+            {/* Flecha rebotante que senala el cartel para que no pase desapercibido */}
+            <motion.div
+              className="flex justify-center"
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+              aria-hidden
+            >
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="text-osp">
+                <path
+                  d="M16 4 L16 24 M8 16 L16 24 L24 16"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </motion.div>
+
+            <motion.div
+              className="flex items-start gap-4 rounded-2xl border-2 border-osp bg-white p-6"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 22, delay: 0.15 }}
+            >
+              <Clock className="h-10 w-10 shrink-0 text-osp" aria-hidden />
+              <p className="text-k-sub">
+                Todavía no comenzó la atención. Lo atienden de{" "}
+                <strong>
+                  {turno.avisoHorario.desde} a {turno.avisoHorario.hasta}
+                </strong>
+                . Conserve su ticket y aguarde.
+              </p>
+            </motion.div>
           </div>
         )}
 

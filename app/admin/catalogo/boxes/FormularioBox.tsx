@@ -111,6 +111,7 @@ export function FormularioBox({
         opciones={tramites}
         marcados={e?.tramiteIds ?? []}
         soloLectura={soloLectura}
+        linkAgregar={{ href: "/admin/catalogo/tramites", texto: "+ Agregar trámite" }}
       />
 
       <div className="flex items-center gap-4">
