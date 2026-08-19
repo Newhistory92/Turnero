@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
-import { Printer } from "lucide-react"
+import { Clock, Printer } from "lucide-react"
 import { BandaDestino } from "../BandaDestino"
 import { Ticket, ESTILOS_TICKET } from "../imprimir/Ticket"
 import { usarImpresion } from "../imprimir/usarImpresion"
@@ -50,6 +50,24 @@ export function PasoResultado({
           piso={turno.destino.piso}
           area={turno.tramite}
         />
+
+        {/* Saco el turno antes de que abriera: el ticket ya esta impreso y no
+            dice el horario, asi que el aviso tiene que llegarle aca. */}
+        {turno.avisoHorario && (
+          <div
+            className="flex items-start gap-4 rounded-2xl border-2 border-osp bg-white p-6"
+            data-testid="aviso-horario"
+          >
+            <Clock className="h-10 w-10 shrink-0 text-osp" aria-hidden />
+            <p className="text-k-sub">
+              Todavía no comenzó la atención. Lo atienden de{" "}
+              <strong>
+                {turno.avisoHorario.desde} a {turno.avisoHorario.hasta}
+              </strong>
+              . Conserve su ticket y aguarde.
+            </p>
+          </div>
+        )}
 
         <hr className="border-gris-70" />
 

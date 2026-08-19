@@ -50,6 +50,11 @@ export interface TurnoEmitido {
   destino: { ala: string; piso: string }
   hora: string
   codigo: string
+  /**
+   * Solo cuando el turno se saco antes de que abriera: el horario en que
+   * efectivamente lo van a atender. null en el caso normal.
+   */
+  avisoHorario: { desde: string; hasta: string } | null
 }
 
 type Paso =
@@ -68,7 +73,8 @@ function aTurnoEmitido(
   turno: TurnoDelServidor,
   tramite: TramiteVista,
   dni: string,
-  nombreAfiliado: string | null
+  nombreAfiliado: string | null,
+  avisoHorario: { desde: string; hasta: string } | null
 ): TurnoEmitido {
   const emitido = new Date(turno.createdAt)
   return {
@@ -78,6 +84,7 @@ function aTurnoEmitido(
     destino: tramite.destino,
     hora: emitido.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }),
     codigo: turno.id.slice(0, 8).toUpperCase(),
+    avisoHorario,
   }
 }
 
@@ -184,15 +191,20 @@ export function Wizard({
           setPaso({ nombre: "error" })
           return
         }
+        // Si lo saco antes de que abriera, el resultado le avisa a que hora
+        // lo atienden: el ticket ya salio y no tiene forma de saberlo si no.
+        const estado = estadosTramites[t.id]
+        const aviso = estado?.anticipado ? estado.ventana : null
+
         setPaso({
           nombre: "resultado",
-          turno: aTurnoEmitido(r.turno, t, dni, nombreAfiliado),
+          turno: aTurnoEmitido(r.turno, t, dni, nombreAfiliado, aviso),
         })
       } finally {
         setGenerando(false)
       }
     },
-    [dni, nombreAfiliado, requestId, generando]
+    [dni, nombreAfiliado, requestId, generando, estadosTramites]
   )
 
   return (

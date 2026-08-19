@@ -51,11 +51,19 @@ export interface Ventana {
 
 export type MotivoNoDisponible =
   | "tramite_inactivo"
+  /** Hoy no se atiende, o estamos en un hueco entre boxes no contiguos. */
   | "fuera_de_horario"
+  /** Hoy se atendio y ya paso la ultima hora de cierre. */
+  | "cerrado_por_hoy"
   | "sin_boxes"
 
 export interface Disponibilidad {
   disponible: boolean
   ventanaEfectiva: Ventana | null
   motivo: MotivoNoDisponible | null
+  /**
+   * El turno se emite aunque todavia no haya abierto: la persona llego antes
+   * y espera. El kiosco le avisa el horario en la pantalla del resultado.
+   */
+  anticipado: boolean
 }

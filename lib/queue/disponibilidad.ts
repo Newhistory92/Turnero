@@ -43,15 +43,10 @@ function unir(a: Ventana, b: Ventana): Ventana {
 
 /**
  * Agrupa intersecciones contiguas o solapadas entre si, sin unir jamas dos
- * grupos separados por un hueco sin cobertura, y devuelve el grupo relevante
- * para "minutos": el que lo contiene o, si ninguno lo contiene, el mas
- * cercano en el tiempo. Es la unica funcion que decide que ventana se le
- * muestra al usuario, para que nunca "abarque" un hueco entre boxes que
- * individualmente no se solapan entre si.
+ * grupos separados por un hueco sin cobertura. Devuelve los grupos ordenados
+ * por hora de inicio.
  */
-function ventanaEfectivaParaMostrar(intersecciones: Ventana[], minutos: number): Ventana | null {
-  if (intersecciones.length === 0) return null
-
+function agrupar(intersecciones: Ventana[]): Ventana[] {
   const ordenadas = [...intersecciones].sort((a, b) => aMinutos(a.desde) - aMinutos(b.desde))
   const grupos: Ventana[] = []
   for (const v of ordenadas) {
@@ -62,6 +57,17 @@ function ventanaEfectivaParaMostrar(intersecciones: Ventana[], minutos: number):
       grupos.push(v)
     }
   }
+  return grupos
+}
+
+/**
+ * Devuelve el grupo relevante para "minutos": el que lo contiene o, si
+ * ninguno lo contiene, el mas cercano en el tiempo. Es la unica funcion que
+ * decide que ventana se le muestra al usuario, para que nunca "abarque" un
+ * hueco entre boxes que individualmente no se solapan entre si.
+ */
+function ventanaEfectivaParaMostrar(grupos: Ventana[], minutos: number): Ventana | null {
+  if (grupos.length === 0) return null
 
   const contiene = grupos.find((g) => minutos >= aMinutos(g.desde) && minutos < aMinutos(g.hasta))
   if (contiene) return contiene
@@ -89,14 +95,19 @@ export function estaDisponible(
   ahora: Date
 ): Disponibilidad {
   if (!tramite.activo) {
-    return { disponible: false, ventanaEfectiva: null, motivo: "tramite_inactivo" }
+    return {
+      disponible: false,
+      ventanaEfectiva: null,
+      motivo: "tramite_inactivo",
+      anticipado: false,
+    }
   }
 
   const dia = String(diaIso(ahora))
   const boxesUtiles = boxes.filter((b) => b.activo)
 
   if (boxesUtiles.length === 0) {
-    return { disponible: false, ventanaEfectiva: null, motivo: "sin_boxes" }
+    return { disponible: false, ventanaEfectiva: null, motivo: "sin_boxes", anticipado: false }
   }
 
   const ventanaTramite: Ventana = {
@@ -112,7 +123,7 @@ export function estaDisponible(
   )
 
   if (!haySolapeEstructural) {
-    return { disponible: false, ventanaEfectiva: null, motivo: "sin_boxes" }
+    return { disponible: false, ventanaEfectiva: null, motivo: "sin_boxes", anticipado: false }
   }
 
   // Solo los boxes activos Y abiertos hoy pueden aportar horas reales: un
@@ -140,13 +151,51 @@ export function estaDisponible(
     (v) => minutos >= aMinutos(v.desde) && minutos < aMinutos(v.hasta)
   )
 
+  const grupos = agrupar(intersecciones)
   // Ventana efectiva para mostrarle al usuario cuando esta cerrado. Nunca
   // "abarca" un hueco entre boxes que individualmente no se solapan entre si.
-  const efectiva = ventanaEfectivaParaMostrar(intersecciones, minutos)
+  const efectiva = ventanaEfectivaParaMostrar(grupos, minutos)
 
-  if (!habilitaHoy || !dentro) {
-    return { disponible: false, ventanaEfectiva: efectiva, motivo: "fuera_de_horario" }
+  if (!habilitaHoy) {
+    return {
+      disponible: false,
+      ventanaEfectiva: efectiva,
+      motivo: "fuera_de_horario",
+      anticipado: false,
+    }
   }
 
-  return { disponible: true, ventanaEfectiva: efectiva, motivo: null }
+  if (dentro) {
+    return { disponible: true, ventanaEfectiva: efectiva, motivo: null, anticipado: false }
+  }
+
+  // Hoy se atiende, pero ahora no. Los tres casos no son lo mismo para quien
+  // esta parado frente al totem, y por eso no comparten respuesta.
+  const primero = grupos[0]
+  const ultimo = grupos[grupos.length - 1]
+
+  // Llego antes de que abra: el turno se emite igual y hace la cola. El
+  // kiosco le avisa el horario en la pantalla del resultado.
+  if (minutos < aMinutos(primero.desde)) {
+    return { disponible: true, ventanaEfectiva: efectiva, motivo: null, anticipado: true }
+  }
+
+  // Ya paso la ultima hora de cierre: por hoy no se atiende mas.
+  if (minutos >= aMinutos(ultimo.hasta)) {
+    return {
+      disponible: false,
+      ventanaEfectiva: efectiva,
+      motivo: "cerrado_por_hoy",
+      anticipado: false,
+    }
+  }
+
+  // Hueco entre boxes no contiguos: hoy todavia se vuelve a atender, pero
+  // ahora mismo no hay cobertura, asi que no se emite.
+  return {
+    disponible: false,
+    ventanaEfectiva: efectiva,
+    motivo: "fuera_de_horario",
+    anticipado: false,
+  }
 }

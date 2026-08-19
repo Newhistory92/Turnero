@@ -33,8 +33,34 @@ describe("estaDisponible", () => {
   it("no emite a las 12:30 aunque el trámite cierre a las 13:00", () => {
     const r = estaDisponible(tramite, [box], miercoles("12:30"))
     expect(r.disponible).toBe(false)
-    expect(r.motivo).toBe("fuera_de_horario")
+    expect(r.motivo).toBe("cerrado_por_hoy")
     expect(r.ventanaEfectiva).toEqual({ desde: "08:00", hasta: "12:00" })
+  })
+
+  it("antes de abrir emite igual, marcado como anticipado y con la ventana del día", () => {
+    const r = estaDisponible(tramite, [box], miercoles("07:00"))
+    expect(r.disponible).toBe(true)
+    expect(r.anticipado).toBe(true)
+    expect(r.motivo).toBeNull()
+    expect(r.ventanaEfectiva).toEqual({ desde: "08:00", hasta: "12:00" })
+  })
+
+  it("dentro del horario emite sin marcar anticipado", () => {
+    const r = estaDisponible(tramite, [box], miercoles("10:00"))
+    expect(r.disponible).toBe(true)
+    expect(r.anticipado).toBe(false)
+  })
+
+  it("después del cierre no emite y nunca queda marcado como anticipado", () => {
+    const r = estaDisponible(tramite, [box], miercoles("12:30"))
+    expect(r.anticipado).toBe(false)
+  })
+
+  it("un día no habilitado no cuenta como anticipado", () => {
+    const r = estaDisponible(tramite, [box], domingo("07:00"))
+    expect(r.disponible).toBe(false)
+    expect(r.anticipado).toBe(false)
+    expect(r.motivo).toBe("fuera_de_horario")
   })
 
   it("emite en el minuto exacto de apertura", () => {
@@ -128,6 +154,26 @@ describe("estaDisponible", () => {
 
     const dentroDeB = estaDisponible(tramite, [boxA, boxB], miercoles("11:30"))
     expect(dentroDeB.disponible).toBe(true)
+  })
+
+  it("el hueco entre boxes no es 'cerrado por hoy' ni anticipado: todavía se vuelve a atender", () => {
+    const boxA: BoxDominio = { ...box, id: "boxA", horaApertura: "08:00", horaCierre: "09:00" }
+    const boxB: BoxDominio = { ...box, id: "boxB", horaApertura: "11:00", horaCierre: "12:00" }
+
+    const enElHueco = estaDisponible(tramite, [boxA, boxB], miercoles("10:00"))
+    expect(enElHueco.disponible).toBe(false)
+    expect(enElHueco.anticipado).toBe(false)
+    expect(enElHueco.motivo).toBe("fuera_de_horario")
+
+    // Antes del primer grupo sí es anticipado, aunque después haya un hueco.
+    const antesDeTodo = estaDisponible(tramite, [boxA, boxB], miercoles("07:00"))
+    expect(antesDeTodo.disponible).toBe(true)
+    expect(antesDeTodo.anticipado).toBe(true)
+
+    // Después del último grupo sí cerró por hoy.
+    const despuesDeTodo = estaDisponible(tramite, [boxA, boxB], miercoles("12:30"))
+    expect(despuesDeTodo.disponible).toBe(false)
+    expect(despuesDeTodo.motivo).toBe("cerrado_por_hoy")
   })
 
   it("la ventana efectiva nunca abarca el hueco entre boxes no contiguos", () => {

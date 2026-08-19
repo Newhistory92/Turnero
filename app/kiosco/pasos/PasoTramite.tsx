@@ -6,6 +6,10 @@ import type { CategoriaVista, TramiteVista } from "../Wizard"
 export interface EstadoTramite {
   disponible: boolean
   ventana: { desde: string; hasta: string } | null
+  /** Se puede sacar turno pero todavia no abrio: se avisa en el resultado. */
+  anticipado: boolean
+  /** Ya termino la atencion por hoy: la tarjeta lo dice en grande. */
+  cerradoPorHoy: boolean
 }
 
 interface Props {
@@ -34,6 +38,7 @@ export function PasoTramite({ categoria, estados, onElegir }: Props) {
                 titulo={t.nombre}
                 subtitulo={t.subtitulo}
                 cerrado={estado?.disponible === false ? estado.ventana : null}
+                finDeJornada={estado?.cerradoPorHoy === true}
                 onClick={() => onElegir(t)}
               />
             )

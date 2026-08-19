@@ -13,7 +13,12 @@ export default async function PaginaKiosco() {
   const estadosTramites: Record<string, EstadoTramite> = {}
   for (const t of catalogo.tramites) {
     const d = estaDisponible(t, t.boxes, ahora)
-    estadosTramites[t.id] = { disponible: d.disponible, ventana: d.ventanaEfectiva }
+    estadosTramites[t.id] = {
+      disponible: d.disponible,
+      ventana: d.ventanaEfectiva,
+      anticipado: d.anticipado,
+      cerradoPorHoy: d.motivo === "cerrado_por_hoy",
+    }
   }
 
   return (
