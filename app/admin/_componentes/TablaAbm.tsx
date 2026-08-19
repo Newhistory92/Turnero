@@ -82,11 +82,14 @@ export function TablaAbm({
   columnas,
   filas,
   soloLectura,
+  editable = true,
 }: {
   entidad: string
   columnas: string[]
   filas: FilaAbm[]
   soloLectura: boolean
+  /** false para entidades sin formulario de edición (ninguna, por ahora). */
+  editable?: boolean
 }) {
   if (filas.length === 0) {
     return <p className="rounded-xl bg-white p-6 text-gris-principal">Todavía no hay ninguno.</p>
@@ -117,6 +120,11 @@ export function TablaAbm({
                 </span>
               </td>
               <td className="flex gap-4 px-4 py-3">
+                {editable && !soloLectura && (
+                  <a href={`?editar=${entidad}:${f.id}`} className="text-sm underline">
+                    Editar
+                  </a>
+                )}
                 <BotonEstado entidad={entidad} fila={f} soloLectura={soloLectura} />
                 {f.borrable && (
                   <BotonBorrar entidad={entidad} fila={f} soloLectura={soloLectura} />

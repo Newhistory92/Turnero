@@ -2,9 +2,15 @@ import { prisma } from "@/lib/db"
 import { actorActual, puedeEditarCatalogo } from "@/lib/admin/acceso"
 import { contarReferencias, sePuedeBorrar } from "@/lib/admin/referencias"
 import { TablaAbm, type FilaAbm } from "../../_componentes/TablaAbm"
-import { FormularioBox } from "./FormularioBox"
+import { FormularioBox, type BoxEditar } from "./FormularioBox"
 
-export default async function PaginaBoxes() {
+export default async function PaginaBoxes({
+  searchParams,
+}: {
+  searchParams: Promise<{ editar?: string }>
+}) {
+  const { editar: editarRaw } = await searchParams
+  const editarId = editarRaw?.startsWith("box:") ? editarRaw.slice("box:".length) : undefined
   const actor = await actorActual()
   const soloLectura = !actor || !puedeEditarCatalogo(actor.rol)
 
@@ -17,6 +23,21 @@ export default async function PaginaBoxes() {
     prisma.piso.findMany({ where: { activa: true }, orderBy: { nivel: "asc" } }),
     prisma.tramite.findMany({ where: { activo: true }, orderBy: { orden: "asc" } }),
   ])
+
+  const bEditar = editarId ? boxes.find((b) => b.id === editarId) : undefined
+  const editar: BoxEditar | undefined = bEditar
+    ? {
+        id: bEditar.id,
+        nombre: bEditar.nombre,
+        numero: bEditar.numero,
+        alaId: bEditar.alaId,
+        pisoId: bEditar.pisoId,
+        horaApertura: bEditar.horaApertura,
+        horaCierre: bEditar.horaCierre,
+        diasSemana: bEditar.diasSemana,
+        tramiteIds: bEditar.tramites.map((bt) => bt.tramiteId),
+      }
+    : undefined
 
   const filas: FilaAbm[] = await Promise.all(
     boxes.map(async (b) => ({
@@ -42,6 +63,7 @@ export default async function PaginaBoxes() {
         pisos={pisos.map((p) => ({ id: p.id, nombre: p.nombre }))}
         tramites={tramites.map((t) => ({ id: t.id, nombre: t.nombre }))}
         soloLectura={soloLectura}
+        editar={editar}
       />
 
       <TablaAbm

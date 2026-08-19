@@ -4,9 +4,15 @@ import { contarReferencias, sePuedeBorrar } from "@/lib/admin/referencias"
 import { avisoDestino } from "@/lib/admin/avisos"
 import { NOMBRES_DE_ICONO } from "@/lib/kiosco/iconos"
 import { TablaAbm, type FilaAbm } from "../../_componentes/TablaAbm"
-import { FormularioTramite } from "./FormularioTramite"
+import { FormularioTramite, type TramiteEditar } from "./FormularioTramite"
 
-export default async function PaginaTramites() {
+export default async function PaginaTramites({
+  searchParams,
+}: {
+  searchParams: Promise<{ editar?: string }>
+}) {
+  const { editar: editarRaw } = await searchParams
+  const editarId = editarRaw?.startsWith("tramite:") ? editarRaw.slice("tramite:".length) : undefined
   const actor = await actorActual()
   const soloLectura = !actor || !puedeEditarCatalogo(actor.rol)
 
@@ -28,6 +34,26 @@ export default async function PaginaTramites() {
       include: { ala: true },
     }),
   ])
+
+  const tEditar = editarId ? tramites.find((t) => t.id === editarId) : undefined
+  const editar: TramiteEditar | undefined = tEditar
+    ? {
+        id: tEditar.id,
+        nombre: tEditar.nombre,
+        subtitulo: tEditar.subtitulo,
+        categoriaId: tEditar.categoriaId,
+        icono: tEditar.icono,
+        prefijo: tEditar.prefijo,
+        destinoAlaId: tEditar.destinoAlaId,
+        destinoPisoId: tEditar.destinoPisoId,
+        horaApertura: tEditar.horaApertura,
+        horaCierre: tEditar.horaCierre,
+        duracionMinimaEsperada: tEditar.duracionMinimaEsperada,
+        diasSemana: tEditar.diasSemana,
+        orden: tEditar.orden,
+        boxIds: tEditar.boxes.map((bt) => bt.box.id),
+      }
+    : undefined
 
   const avisos = tramites
     .map((t) => ({
@@ -76,6 +102,7 @@ export default async function PaginaTramites() {
         boxes={boxes.map((b) => ({ id: b.id, nombre: `${b.nombre} — ${b.ala.nombre}` }))}
         iconos={NOMBRES_DE_ICONO}
         soloLectura={soloLectura}
+        editar={editar}
       />
 
       <TablaAbm
