@@ -183,7 +183,7 @@ Validaciones, en orden:
 
 1. `puedeEditarCatalogo(actor.rol)` — si no, error en campo `rol` con "No tenés permiso".
 2. El empleado existe — si no, error genérico.
-3. **Si `empleadoId === actor.id`**, se descartan `rol` y `activo` sin mirarlos y se
+3. **Si `empleadoId === actor.empleadoId`**, se descartan `rol` y `activo` sin mirarlos y se
    guardan sólo los boxes. No es un error: la pantalla ya los mostró deshabilitados, así
    que un envío con esos campos alterados viene de alguien que manipuló el formulario.
    Se guarda lo legítimo y se ignora lo demás.
@@ -233,7 +233,7 @@ reflejado en el nav de esa persona en su siguiente pedido, sin revalidación.
 ## 11. Pruebas
 
 **Unitarias** — validación de rol contra el vocabulario, y el guard de auto-edición
-(que con `empleadoId === actor.id` los cambios de rol y activo se descartan y los boxes
+(que con `empleadoId === actor.empleadoId` los cambios de rol y activo se descartan y los boxes
 se conservan).
 
 **Integración** — importar crea con rol `operador`; importar a alguien que ya existe lo
