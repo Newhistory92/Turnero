@@ -28,5 +28,5 @@ export async function POST(req: Request) {
     )
   }
 
-  return NextResponse.json({ ok: true, boxes, panel })
+  return NextResponse.json({ ok: true, boxes, panel, rol })
 }
