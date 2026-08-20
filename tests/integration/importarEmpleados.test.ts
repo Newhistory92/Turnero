@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { prisma } from "@/lib/db"
-import { importarEmpleados, type FilaEmpleado } from "@/scripts/importarEmpleados"
+import { importarEmpleados, type FilaEmpleado } from "@/lib/admin/importacion"
 
 const gente: FilaEmpleado[] = [
   { nombreUsuario: "silviaflores", documento: "25319010", nombrePersona: "Silvia", apellidoPersona: "Flores" },
@@ -46,5 +46,24 @@ describe("importarEmpleados", () => {
     const r = await importarEmpleados(["silviaflores", "fantasma"], consultaFalsa)
     expect(r.noEncontrados).toEqual(["fantasma"])
     expect(r.creados).toBe(1)
+  })
+
+  it("reimportar a alguien no le baja el rol ni pierde su historial", async () => {
+    // Un supervisor dado de baja que se reimporta tiene que volver como
+    // supervisor. Degradarlo a operador en silencio seria peor que no
+    // reactivarlo.
+    await importarEmpleados(["silviaflores"], consultaFalsa)
+    await prisma.empleado.update({
+      where: { dniInstitucional: "25319010" },
+      data: { rol: "supervisor", activo: false },
+    })
+
+    await importarEmpleados(["silviaflores"], consultaFalsa)
+
+    const silvia = await prisma.empleado.findUniqueOrThrow({
+      where: { dniInstitucional: "25319010" },
+    })
+    expect(silvia.rol).toBe("supervisor")
+    expect(silvia.activo).toBe(true)
   })
 })
