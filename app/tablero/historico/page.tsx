@@ -95,7 +95,11 @@ export default async function PaginaHistorico({
     : []
 
   const personas = paraVolumen.filter((t) => t.derivadoDeId === null).length
-  const ausentes = turnos.filter((t) => t.estado === "ausente").length
+  // §6.5: se cuentan eventos de tipo "ausente", no el estado final del turno.
+  const ausentes = turnos.reduce(
+    (acc, t) => acc + t.eventos.filter((e) => e.tipo === "ausente").length,
+    0
+  )
   const abandonados = turnos.filter((t) => t.estado === "abandonado").length
 
   return (

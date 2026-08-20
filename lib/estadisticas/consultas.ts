@@ -55,48 +55,70 @@ export async function turnosDelRango(
   const hastaUtc = new Date(rango.hasta)
   hastaUtc.setUTCHours(23, 59, 59, 999)
 
-  const turnos = await prisma.turno.findMany({
+  const include = {
+    tramite: { select: { nombre: true, duracionMinimaEsperada: true } },
+    box: { select: { nombre: true } },
+    eventos: {
+      select: { tipo: true, timestamp: true, empleadoId: true, empleado: { select: { nombre: true } } },
+      orderBy: { timestamp: "asc" } as const,
+    },
+  } as const
+
+  const turnosBase = await prisma.turno.findMany({
     where: {
       fecha: { gte: desdeUtc, lte: hastaUtc },
       tramiteId: filtroTramiteId(alcance),
     },
-    include: {
-      tramite: { select: { nombre: true, duracionMinimaEsperada: true } },
-      box: { select: { nombre: true } },
-      eventos: {
-        select: { tipo: true, timestamp: true, empleadoId: true, empleado: { select: { nombre: true } } },
-        orderBy: { timestamp: "asc" },
-      },
-    },
+    include,
   })
 
-  return turnos.map((t) => {
-    // El empleado de la atencion es el que la inicio; si el turno se
-    // finalizo sin iniciar (no deberia pasar), vale el del cierre.
-    const conEmpleado =
-      t.eventos.find((e) => e.tipo === "iniciado" && e.empleadoId) ??
-      t.eventos.find((e) => e.tipo === "finalizado" && e.empleadoId) ??
-      null
+  // Fix derivaciones salientes: si A (en alcance) → B (fuera del alcance),
+  // B no aparece en turnosBase y el par A→B nunca se construye. Traemos los
+  // turnos destino sin filtrar por alcance y los unimos al resultado.
+  const idsBase = turnosBase.map((t) => t.id)
+  const turnosDestino =
+    idsBase.length > 0
+      ? await prisma.turno.findMany({
+          where: {
+            fecha: { gte: desdeUtc, lte: hastaUtc },
+            derivadoDeId: { in: idsBase },
+            id: { notIn: idsBase },
+          },
+          include,
+        })
+      : []
 
-    return {
-      id: t.id,
-      numero: t.numero,
-      fecha: t.fecha,
-      tramiteId: t.tramiteId,
-      tramiteNombre: t.tramite.nombre,
-      umbralMinutos: t.tramite.duracionMinimaEsperada,
-      derivadoDeId: t.derivadoDeId,
-      estado: t.estado,
-      boxId: t.boxId,
-      boxNombre: t.box?.nombre ?? null,
-      empleadoId: conEmpleado?.empleadoId ?? null,
-      empleadoNombre: conEmpleado?.empleado?.nombre ?? null,
-      eventos: t.eventos.map((e) => ({
-        tipo: e.tipo as TipoEvento,
-        timestamp: e.timestamp,
-      })),
-    }
-  })
+  function mapear(
+    lista: typeof turnosBase
+  ): FilaTurno[] {
+    return lista.map((t) => {
+      const conEmpleado =
+        t.eventos.find((e) => e.tipo === "iniciado" && e.empleadoId) ??
+        t.eventos.find((e) => e.tipo === "finalizado" && e.empleadoId) ??
+        null
+
+      return {
+        id: t.id,
+        numero: t.numero,
+        fecha: t.fecha,
+        tramiteId: t.tramiteId,
+        tramiteNombre: t.tramite.nombre,
+        umbralMinutos: t.tramite.duracionMinimaEsperada,
+        derivadoDeId: t.derivadoDeId,
+        estado: t.estado,
+        boxId: t.boxId,
+        boxNombre: t.box?.nombre ?? null,
+        empleadoId: conEmpleado?.empleadoId ?? null,
+        empleadoNombre: conEmpleado?.empleado?.nombre ?? null,
+        eventos: t.eventos.map((e) => ({
+          tipo: e.tipo as TipoEvento,
+          timestamp: e.timestamp,
+        })),
+      }
+    })
+  }
+
+  return [...mapear(turnosBase), ...mapear(turnosDestino)]
 }
 
 export async function colaActual(

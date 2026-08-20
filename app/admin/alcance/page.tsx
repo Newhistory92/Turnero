@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation"
 import { actorActual, puedeEditarCatalogo } from "@/lib/admin/acceso"
 import { prisma } from "@/lib/db"
 import { FormularioAlcance } from "./FormularioAlcance"
@@ -5,6 +6,9 @@ import { FormularioAlcance } from "./FormularioAlcance"
 export default async function PaginaAlcance() {
   const actor = await actorActual()
   if (!actor) return null
+
+  // Solo admin puede ver y editar la asignación de alcance de supervisores.
+  if (!puedeEditarCatalogo(actor.rol)) redirect("/admin")
 
   const soloLectura = !puedeEditarCatalogo(actor.rol)
 

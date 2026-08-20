@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { verificarCredencial } from "@/lib/auth/institucional"
 import { accesoDe } from "@/lib/auth/operador"
-import { puedeVerCatalogo } from "@/lib/admin/acceso"
+import { puedeVerCatalogo, puedeVerTablero } from "@/lib/admin/acceso"
 
 export async function POST(req: Request) {
   const { usuario, clave } = await req.json()
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   }
 
   const { boxes, rol } = await accesoDe(credencial.usuario.documento)
-  const panel = rol !== null && puedeVerCatalogo(rol)
+  const panel = rol !== null && (puedeVerCatalogo(rol) || puedeVerTablero(rol))
 
   // Sin boxes y sin panel no hay nada que ofrecerle.
   if (boxes.length === 0 && !panel) {

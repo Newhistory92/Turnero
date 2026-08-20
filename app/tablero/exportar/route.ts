@@ -5,6 +5,17 @@ import { calcularDuraciones } from "@/lib/estadisticas/duraciones"
 import { parsearRango, aClaveFecha } from "@/lib/estadisticas/rango"
 import { aCsv, type FilaExportable } from "@/lib/estadisticas/csv"
 
+/**
+ * Turno.fecha es @db.Date guardado como medianoche UTC. En Argentina (UTC-3),
+ * los getters locales devuelven el día anterior. Se usan getters UTC para
+ * obtener la fecha correcta del turno tal como fue registrada en la BD.
+ */
+function aClaveFechaUTC(d: Date): string {
+  const mes = String(d.getUTCMonth() + 1).padStart(2, "0")
+  const dia = String(d.getUTCDate()).padStart(2, "0")
+  return `${d.getUTCFullYear()}-${mes}-${dia}`
+}
+
 export async function GET(pedido: Request): Promise<Response> {
   const actor = await actorActual()
   // 401 y no redirect: esto lo pide un enlace de descarga, no un navegante.
@@ -29,7 +40,7 @@ export async function GET(pedido: Request): Promise<Response> {
     const d = calcularDuraciones(t.eventos, t.umbralMinutos)
     return {
       numero: t.numero,
-      fecha: aClaveFecha(t.fecha),
+      fecha: aClaveFechaUTC(t.fecha),
       tramiteNombre: t.tramiteNombre,
       estado: t.estado,
       derivado: t.derivadoDeId !== null,

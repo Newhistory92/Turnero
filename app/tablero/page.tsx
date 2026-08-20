@@ -42,7 +42,12 @@ export default async function PaginaHoy() {
   }))
 
   const personas = turnos.filter(esPersona).length
-  const ausentes = turnos.filter((t) => t.estado === "ausente").length
+  // §6.5: se cuentan eventos de tipo "ausente", no el estado final del turno.
+  // Un turno puede tener múltiples eventos ausente y seguir siendo llamado.
+  const ausentes = turnos.reduce(
+    (acc, t) => acc + t.eventos.filter((e) => e.tipo === "ausente").length,
+    0
+  )
   const abandonados = turnos.filter((t) => t.estado === "abandonado").length
 
   // El promedio va sobre los ya llamados: incluir las esperas abiertas

@@ -66,7 +66,13 @@ export default function LoginOperador() {
         setError(datos.mensaje)
         return
       }
-      router.push(destino === PANEL ? "/admin" : "/operador")
+      if (destino === PANEL) {
+        // director puede ver el tablero pero no el catálogo.
+        const puedeAdmin = datos.rol === "admin" || datos.rol === "supervisor"
+        router.push(puedeAdmin ? "/admin" : "/tablero")
+      } else {
+        router.push("/operador")
+      }
     } catch {
       setError("No se pudo conectar con el servidor")
     } finally {

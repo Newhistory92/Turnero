@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { actorActual, puedeVerCatalogo, puedeEditarCatalogo } from "@/lib/admin/acceso"
+import { actorActual, puedeVerCatalogo, puedeEditarCatalogo, puedeVerTablero } from "@/lib/admin/acceso"
 
 export default async function LayoutAdmin({
   children,
@@ -14,6 +14,7 @@ export default async function LayoutAdmin({
   if (!actor || !puedeVerCatalogo(actor.rol)) redirect("/operador/login")
 
   const soloLectura = !puedeEditarCatalogo(actor.rol)
+  const conTablero = puedeVerTablero(actor.rol)
 
   return (
     <div className="min-h-dvh bg-gris-20">
@@ -31,9 +32,16 @@ export default async function LayoutAdmin({
           <Link href="/admin/catalogo/simples" className="text-sm hover:underline">
             Sedes, alas, pisos y categorías
           </Link>
-          <Link href="/admin/alcance" className="text-sm hover:underline">
-            Alcance de métricas
-          </Link>
+          {puedeEditarCatalogo(actor.rol) && (
+            <Link href="/admin/alcance" className="text-sm hover:underline">
+              Alcance de métricas
+            </Link>
+          )}
+          {conTablero && (
+            <Link href="/tablero" className="text-sm hover:underline">
+              Tablero
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center gap-4 text-sm">
