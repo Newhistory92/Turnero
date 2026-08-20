@@ -74,3 +74,52 @@ export async function importarEmpleados(
 
   return { creados, actualizados, noEncontrados }
 }
+
+export interface Importable {
+  nombreUsuario: string
+  documento: string
+  nombre: string
+  yaEsta: boolean
+}
+
+export type ConsultaTodos = () => Promise<FilaEmpleado[]>
+
+const consultaTodosReal: ConsultaTodos = () =>
+  prisma.$queryRawUnsafe<FilaEmpleado[]>(`
+    SELECT
+      LTRIM(RTRIM(u.nombreUsuario)) AS nombreUsuario,
+      LTRIM(RTRIM(p.numeroDocPersona)) AS documento,
+      LTRIM(RTRIM(p.nombrePersona)) AS nombrePersona,
+      LTRIM(RTRIM(p.apellidoPersona)) AS apellidoPersona
+    FROM [ObraSocial].[dbo].[Usuario] u
+    JOIN [ObraSocial].[dbo].[Persona] p ON p.idPersona = u.idPersona
+    WHERE u.anulado = 0
+      AND ${SQL_EMPLEADOS}
+    ORDER BY p.apellidoPersona, p.nombrePersona
+  `)
+
+/**
+ * Los empleados de la obra social, con la marca de quien ya esta en el
+ * Turnero. El cruce se hace en memoria y no con un JOIN entre bases porque
+ * son bases distintas y la lista ronda las 150 filas.
+ */
+export async function listarImportables(
+  consulta: ConsultaTodos = consultaTodosReal
+): Promise<Importable[]> {
+  const filas = await consulta()
+
+  const existentes = await prisma.empleado.findMany({
+    where: { dniInstitucional: { in: filas.map((f) => f.documento) } },
+    select: { dniInstitucional: true },
+  })
+  // Incluye a los inactivos: si un empleado dado de baja apareciera como
+  // importable, importarlo lo reactivaria sin que se note.
+  const ya = new Set(existentes.map((e) => e.dniInstitucional))
+
+  return filas.map((f) => ({
+    nombreUsuario: f.nombreUsuario,
+    documento: f.documento,
+    nombre: nombreCompleto(f),
+    yaEsta: ya.has(f.documento),
+  }))
+}
