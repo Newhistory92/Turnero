@@ -298,6 +298,45 @@ export async function cambiarActivo(
   return { ok: true }
 }
 
+/**
+ * Reemplaza el alcance completo en vez de agregar: si solo agregara,
+ * desmarcar una casilla no sacaria nada y el alcance de un supervisor solo
+ * podria crecer.
+ */
+export async function guardarAlcance(
+  actor: Actor,
+  d: { empleadoId: string; tramiteIds: string[] }
+): Promise<Resultado> {
+  // Repartir alcance es la misma autoridad que editar el catalogo: si un
+  // supervisor pudiera, se ampliaria el suyo.
+  if (!puedeEditarCatalogo(actor.rol)) {
+    return { ok: false, errores: [{ campo: "rol", mensaje: "No tenés permiso para esto" }] }
+  }
+
+  const empleado = await prisma.empleado.findUnique({ where: { id: d.empleadoId } })
+  if (!empleado) {
+    return { ok: false, errores: [{ campo: "empleadoId", mensaje: "Ese empleado no existe" }] }
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.alcanceMetrica.deleteMany({ where: { empleadoId: d.empleadoId } })
+      if (d.tramiteIds.length > 0) {
+        await tx.alcanceMetrica.createMany({
+          data: d.tramiteIds.map((tramiteId) => ({ empleadoId: d.empleadoId, tramiteId })),
+        })
+      }
+    })
+  } catch {
+    return {
+      ok: false,
+      errores: [{ campo: "tramiteId", mensaje: "No se pudo guardar el alcance" }],
+    }
+  }
+
+  return { ok: true }
+}
+
 export async function borrar(
   actor: Actor,
   entidad: Entidad,

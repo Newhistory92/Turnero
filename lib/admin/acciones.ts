@@ -6,6 +6,7 @@ import {
   guardarTramite,
   guardarBox,
   guardarSimple,
+  guardarAlcance,
   cambiarActivo,
   borrar,
   type EntidadSimple,
@@ -132,6 +133,22 @@ export async function accionCambiarActivo(
   )
 
   if (r.ok) refrescar()
+  return aEstado(r)
+}
+
+export async function accionGuardarAlcance(
+  _prev: EstadoFormulario,
+  fd: FormData
+): Promise<EstadoFormulario> {
+  const actor = await actorActual()
+  if (!actor) return NO_AUTENTICADO
+
+  const r = await guardarAlcance(actor, {
+    empleadoId: texto(fd, "empleadoId"),
+    tramiteIds: varios(fd, "tramiteId"),
+  })
+
+  if (r.ok) revalidatePath("/admin/alcance")
   return aEstado(r)
 }
 

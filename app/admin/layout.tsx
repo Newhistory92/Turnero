@@ -31,6 +31,9 @@ export default async function LayoutAdmin({
           <Link href="/admin/catalogo/simples" className="text-sm hover:underline">
             Sedes, alas, pisos y categorías
           </Link>
+          <Link href="/admin/alcance" className="text-sm hover:underline">
+            Alcance de métricas
+          </Link>
         </nav>
 
         <div className="flex items-center gap-4 text-sm">
