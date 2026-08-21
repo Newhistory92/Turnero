@@ -35,7 +35,11 @@ export function PasoResultado({
   }, [onTerminar])
 
   return (
-    <div className="grid h-full grid-cols-2">
+    <div
+      className="grid h-full grid-cols-2"
+      onClick={onTerminar}
+      data-testid="paso-resultado"
+    >
       <section className="flex flex-col items-center justify-center">
         <p className="text-k-sub">Su número de turno</p>
         <p className="text-k-turno font-titulo text-osp" data-testid="numero-turno">
