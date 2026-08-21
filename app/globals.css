@@ -32,6 +32,45 @@
   --panel-nav-suave: #1e293b;
   --panel-nav-texto: #94a3b8;
   --panel-nav-activo: #22d3ee;
+  /* Default para SSR: coincide con la lateral expandida, que es el estado
+     inicial hasta que el cliente lea la preferencia guardada. */
+  --panel-ancho-lateral: 256px;
+}
+
+/*
+ * Redefine las mismas variables que usan las utilidades font-titulo y
+ * font-cuerpo, pero solo dentro de esta clase: el kiosco y la pantalla de
+ * sala usan esas mismas utilidades con Figtree/Noto Sans y no deben verse
+ * afectados. El body base de mas arriba es Arial; ".panel-shell" tambien
+ * lo reemplaza para que el texto sin clase (el grueso de tablas y forms)
+ * salga con el trazo fino de Inter en vez de caer al Arial institucional.
+ */
+.panel-shell {
+  font-family: var(--fuente-panel-cuerpo), Arial, sans-serif;
+  --fuente-titulo: var(--fuente-panel-titulo);
+  --fuente-cuerpo: var(--fuente-panel-cuerpo);
+}
+
+/*
+ * El ancho de la lateral colapsable se escribe en CSS plano y no como
+ * utilidad arbitraria de Tailwind: "lg:w-[var(--x,256px)]" con una coma en
+ * el fallback nunca genero la regla en este proyecto (mismo problema visto
+ * antes con -translate-x-full). Con una clase propia no hay parser de
+ * Tailwind de por medio.
+ */
+.panel-lateral {
+  width: 256px;
+}
+.panel-margen-lateral {
+  margin-left: 0;
+}
+@media (min-width: 1024px) {
+  .panel-lateral {
+    width: var(--panel-ancho-lateral, 256px);
+  }
+  .panel-margen-lateral {
+    margin-left: var(--panel-ancho-lateral, 256px);
+  }
 }
 
 body {

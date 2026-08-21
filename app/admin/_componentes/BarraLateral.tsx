@@ -2,10 +2,12 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   BarChart3,
   Building2,
+  ChevronsLeft,
+  ChevronsRight,
   DoorOpen,
   FileText,
   LayoutGrid,
@@ -30,6 +32,8 @@ interface Grupo {
   enlaces: Enlace[]
 }
 
+const CLAVE_COLAPSADA = "panel-lateral-colapsada"
+
 export function BarraLateral({
   nombre,
   rol,
@@ -42,7 +46,24 @@ export function BarraLateral({
   conTablero: boolean
 }) {
   const [abierta, setAbierta] = useState(false)
+  const [colapsada, setColapsada] = useState(false)
   const ruta = usePathname()
+
+  // El ancho vive en una variable CSS y no en el estado de React: asi el
+  // margen del contenido en layout.tsx (un Server Component que no conoce
+  // este estado) se ajusta solo con CSS, sin prop drilling entre ambos.
+  useEffect(() => {
+    const guardada = localStorage.getItem(CLAVE_COLAPSADA) === "1"
+    setColapsada(guardada)
+  }, [])
+
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--panel-ancho-lateral",
+      colapsada ? "80px" : "256px"
+    )
+    localStorage.setItem(CLAVE_COLAPSADA, colapsada ? "1" : "0")
+  }, [colapsada])
 
   // Agrupados por lo que la persona viene a hacer, no por como esta armado el
   // codigo. Siete enlaces sueltos en una fila obligan a leerlos todos cada vez.
@@ -81,22 +102,28 @@ export function BarraLateral({
 
   const contenido = (
     <>
-      <div className="flex items-center gap-2 px-6 py-6">
+      <div
+        className={`flex items-center gap-2 px-4 py-6 ${colapsada ? "lg:justify-center lg:px-0" : ""}`}
+      >
         {/* El cyan claro con texto blanco queda en 3.68:1, por debajo del
             minimo. El tono fuerte lo lleva a 5.37:1. */}
-        <div className="grid h-9 w-9 place-items-center rounded-lg bg-panel-primario-fuerte font-titulo text-lg font-bold text-white">
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-panel-primario-fuerte font-titulo text-lg font-bold text-white shadow-sm shadow-black/30">
           T
         </div>
-        <div>
+        <div className={colapsada ? "lg:hidden" : ""}>
           <p className="font-titulo text-sm font-semibold text-white">Turnero</p>
           <p className="text-xs text-panel-nav-texto">Panel interno</p>
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3">
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3">
         {grupos.map((g) => (
           <div key={g.titulo} className="mb-6">
-            <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-panel-nav-texto">
+            <p
+              className={`px-3 pb-2 text-xs font-medium uppercase tracking-wider text-panel-nav-texto ${
+                colapsada ? "lg:hidden" : ""
+              }`}
+            >
               {g.titulo}
             </p>
             <ul className="flex flex-col gap-1">
@@ -109,14 +136,17 @@ export function BarraLateral({
                       href={e.href}
                       onClick={() => setAbierta(false)}
                       aria-current={activo ? "page" : undefined}
+                      title={colapsada ? e.texto : undefined}
                       className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-panel-nav-activo ${
+                        colapsada ? "lg:justify-center lg:px-0" : ""
+                      } ${
                         activo
-                          ? "bg-panel-nav-suave font-semibold text-panel-nav-activo"
+                          ? "bg-panel-nav-suave font-medium text-panel-nav-activo"
                           : "text-panel-nav-texto hover:bg-panel-nav-suave hover:text-white"
                       }`}
                     >
-                      <Icono size={18} strokeWidth={1.75} aria-hidden="true" />
-                      {e.texto}
+                      <Icono size={18} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />
+                      <span className={colapsada ? "lg:hidden" : ""}>{e.texto}</span>
                     </Link>
                   </li>
                 )
@@ -127,17 +157,20 @@ export function BarraLateral({
       </nav>
 
       <div className="border-t border-panel-nav-suave px-3 py-4">
-        <div className="px-3 pb-3">
+        <div className={`px-3 pb-3 ${colapsada ? "lg:hidden" : ""}`}>
           <p className="truncate text-sm font-medium text-white">{nombre}</p>
           <p className="text-xs capitalize text-panel-nav-texto">{rol}</p>
         </div>
         <form action="/api/auth/logout" method="post">
           <button
             type="submit"
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm text-panel-nav-texto transition-colors duration-150 hover:bg-panel-nav-suave hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-panel-nav-activo"
+            title={colapsada ? "Cerrar sesión" : undefined}
+            className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm text-panel-nav-texto transition-colors duration-150 hover:bg-panel-nav-suave hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-panel-nav-activo ${
+              colapsada ? "lg:justify-center lg:px-0" : ""
+            }`}
           >
-            <LogOut size={18} strokeWidth={1.75} aria-hidden="true" />
-            Cerrar sesión
+            <LogOut size={18} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />
+            <span className={colapsada ? "lg:hidden" : ""}>Cerrar sesión</span>
           </button>
         </form>
       </div>
@@ -153,7 +186,7 @@ export function BarraLateral({
           type="button"
           onClick={() => setAbierta(true)}
           aria-label="Abrir menú"
-          className="grid h-11 w-11 place-items-center rounded-lg text-panel-texto hover:bg-panel-fondo focus:outline-none focus-visible:ring-2 focus-visible:ring-panel-primario"
+          className="grid h-11 w-11 place-items-center rounded-lg text-panel-texto shadow-sm shadow-black/5 hover:bg-panel-fondo focus:outline-none focus-visible:ring-2 focus-visible:ring-panel-primario"
         >
           <Menu size={22} strokeWidth={1.75} aria-hidden="true" />
         </button>
@@ -170,9 +203,13 @@ export function BarraLateral({
 
       {/* Se muestra u oculta con display y no con un translate: la utilidad de
           transform no compone bien en este proyecto y la lateral quedaba
-          visible sobre el contenido en pantallas chicas. */}
+          visible sobre el contenido en pantallas chicas. El ancho en lg lee
+          la variable CSS que controla el colapso, sin transicion: animar un
+          width que depende de una custom property con fallback se traba en
+          el valor inicial en este motor (mismo tipo de problema que el de
+          transform). El colapso es instantaneo pero confiable. */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 flex-col bg-panel-nav lg:flex ${
+        className={`panel-lateral fixed inset-y-0 left-0 z-50 flex-col bg-panel-nav lg:flex ${
           abierta ? "flex" : "hidden"
         }`}
       >
@@ -184,6 +221,23 @@ export function BarraLateral({
         >
           <X size={22} strokeWidth={1.75} aria-hidden="true" />
         </button>
+
+        {/* Colapsar es una preferencia de escritorio: en mobile el drawer ya
+            se cierra con la X de arriba, un segundo control haria lo mismo
+            dos veces. */}
+        <button
+          type="button"
+          onClick={() => setColapsada((v) => !v)}
+          aria-label={colapsada ? "Expandir barra lateral" : "Ocultar barra lateral"}
+          className="absolute -right-3 top-6 hidden h-6 w-6 place-items-center rounded-full border border-panel-nav-suave bg-panel-nav text-panel-nav-texto shadow-md shadow-black/30 transition-colors duration-150 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-panel-nav-activo lg:grid"
+        >
+          {colapsada ? (
+            <ChevronsRight size={14} strokeWidth={2} aria-hidden="true" />
+          ) : (
+            <ChevronsLeft size={14} strokeWidth={2} aria-hidden="true" />
+          )}
+        </button>
+
         {contenido}
       </aside>
     </>

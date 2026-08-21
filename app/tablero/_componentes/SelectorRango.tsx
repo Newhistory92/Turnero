@@ -56,7 +56,7 @@ export function SelectorRango({
               className="rounded-lg border-2 border-gris-70 px-3 py-2"
             />
           </label>
-          <button className="rounded-lg bg-gris-principal px-4 py-2 font-semibold text-white">
+          <button className="rounded-lg bg-gris-principal px-4 py-2 font-semibold text-white shadow-sm shadow-black/15 transition-shadow duration-150 hover:shadow-md">
             Ver
           </button>
         </form>

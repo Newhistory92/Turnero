@@ -43,7 +43,7 @@ export function FormularioAlcance({
 
       <div className="flex items-center gap-4">
         <button
-          className="rounded-lg bg-gris-principal px-4 py-2 font-semibold text-white disabled:bg-gainsboro disabled:text-gris-80"
+          className="rounded-lg bg-gris-principal px-4 py-2 font-semibold text-white shadow-sm shadow-black/15 transition-shadow duration-150 hover:shadow-md disabled:shadow-none disabled:bg-gainsboro disabled:text-gris-80"
           disabled={soloLectura || pendiente}
         >
           {pendiente ? "Guardando…" : "Guardar alcance"}

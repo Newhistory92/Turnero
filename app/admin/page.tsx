@@ -85,13 +85,13 @@ export default async function PaginaAdmin() {
             </>
           )
 
-          const clases = "rounded-xl border border-panel-borde bg-panel-superficie p-5"
+          const clases = "rounded-xl border border-panel-borde bg-panel-superficie p-5 shadow-sm shadow-black/5"
 
           return t.href ? (
             <Link
               key={t.titulo}
               href={t.href}
-              className={`group ${clases} transition-colors duration-150 hover:border-panel-primario focus:outline-none focus-visible:ring-2 focus-visible:ring-panel-primario`}
+              className={`group ${clases} transition-[box-shadow,border-color] duration-150 hover:border-panel-primario hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-panel-primario`}
             >
               {cuerpo}
             </Link>

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { actorActual, puedeVerTablero, puedeVerCatalogo } from "@/lib/admin/acceso"
 import { NavTablero } from "./NavTablero"
+import { panelTitulo, panelCuerpo } from "@/lib/fuentesPanel"
 
 export default async function LayoutTablero({
   children,
@@ -14,7 +15,9 @@ export default async function LayoutTablero({
   if (!actor || !puedeVerTablero(actor.rol)) redirect("/operador/login")
 
   return (
-    <div className="min-h-dvh bg-panel-fondo">
+    <div
+      className={`min-h-dvh bg-panel-fondo panel-shell ${panelTitulo.variable} ${panelCuerpo.variable}`}
+    >
       <NavTablero
         nombre={actor.nombre}
         rol={actor.rol}
