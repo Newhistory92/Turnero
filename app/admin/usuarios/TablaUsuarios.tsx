@@ -3,8 +3,9 @@
 import { useActionState } from "react"
 import { accionGuardarUsuario } from "@/lib/admin/acciones"
 import { ESTADO_INICIAL } from "@/lib/admin/estadoFormulario"
-import { ROLES } from "@/lib/admin/acceso"
 import type { UsuarioFila } from "@/lib/admin/usuarios"
+
+const ROLES = ["operador", "supervisor", "director", "admin"] as const
 
 interface Box {
   id: string
