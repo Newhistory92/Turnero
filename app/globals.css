@@ -11,6 +11,27 @@
   --blanco: #fff;
   --negro: #000;
   --osp: #d31d16;
+
+  /*
+   * Paleta del panel interno (admin y tablero). Vive aparte de la
+   * institucional de arriba a proposito: el kiosco y la pantalla de sala son
+   * la cara publica y conservan el gris y el rojo de la obra social. Estas
+   * pantallas las mira el personal durante horas, y piden mas contraste,
+   * jerarquia y un acento que no compita con el rojo de los errores.
+   */
+  --panel-fondo: #f8fafc;
+  --panel-superficie: #ffffff;
+  --panel-borde: #e2e8f0;
+  --panel-texto: #0f172a;
+  --panel-texto-suave: #64748b;
+  --panel-primario: #0891b2;
+  --panel-primario-fuerte: #0e7490;
+  --panel-primario-suave: #ecfeff;
+  --panel-exito: #059669;
+  --panel-nav: #0f172a;
+  --panel-nav-suave: #1e293b;
+  --panel-nav-texto: #94a3b8;
+  --panel-nav-activo: #22d3ee;
 }
 
 body {

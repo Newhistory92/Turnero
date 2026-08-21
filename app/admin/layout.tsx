@@ -1,6 +1,6 @@
-import Link from "next/link"
 import { redirect } from "next/navigation"
 import { actorActual, puedeVerCatalogo, puedeEditarCatalogo, puedeVerTablero } from "@/lib/admin/acceso"
+import { BarraLateral } from "./_componentes/BarraLateral"
 
 export default async function LayoutAdmin({
   children,
@@ -14,52 +14,26 @@ export default async function LayoutAdmin({
   if (!actor || !puedeVerCatalogo(actor.rol)) redirect("/operador/login")
 
   const soloLectura = !puedeEditarCatalogo(actor.rol)
-  const conTablero = puedeVerTablero(actor.rol)
 
   return (
-    <div className="min-h-dvh bg-gris-20">
-      <header className="flex items-center justify-between border-b border-gainsboro bg-white px-6 py-4">
-        <nav className="flex items-center gap-6">
-          <Link href="/admin" className="font-titulo text-lg font-semibold">
-            Administración
-          </Link>
-          <Link href="/admin/catalogo/tramites" className="text-sm hover:underline">
-            Trámites
-          </Link>
-          <Link href="/admin/catalogo/boxes" className="text-sm hover:underline">
-            Boxes
-          </Link>
-          <Link href="/admin/catalogo/simples" className="text-sm hover:underline">
-            Sedes, alas, pisos y categorías
-          </Link>
-          {puedeEditarCatalogo(actor.rol) && (
-            <Link href="/admin/usuarios" className="text-sm hover:underline">
-              Usuarios
-            </Link>
-          )}
-          {puedeEditarCatalogo(actor.rol) && (
-            <Link href="/admin/alcance" className="text-sm hover:underline">
-              Alcance de métricas
-            </Link>
-          )}
-          {conTablero && (
-            <Link href="/tablero" className="text-sm hover:underline">
-              Tablero
-            </Link>
-          )}
-        </nav>
+    <div className="min-h-dvh bg-panel-fondo">
+      <BarraLateral
+        nombre={actor.nombre}
+        rol={actor.rol}
+        puedeEditar={puedeEditarCatalogo(actor.rol)}
+        conTablero={puedeVerTablero(actor.rol)}
+      />
 
-        <div className="flex items-center gap-4 text-sm">
-          {soloLectura && (
-            <span className="rounded-lg bg-gainsboro px-3 py-1 font-semibold">
-              Sólo lectura
-            </span>
-          )}
-          <span>{actor.nombre}</span>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
+      {/* El margen deja lugar a la lateral fija; en pantallas chicas la
+          lateral se corre fuera y el contenido ocupa todo el ancho. */}
+      <div className="lg:ml-64">
+        {soloLectura && (
+          <div className="border-b border-panel-borde bg-panel-primario-suave px-6 py-2.5 text-sm text-panel-primario-fuerte">
+            Estás viendo el catálogo en modo sólo lectura.
+          </div>
+        )}
+        <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
+      </div>
     </div>
   )
 }
