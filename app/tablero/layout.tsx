@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { actorActual, puedeVerTablero } from "@/lib/admin/acceso"
+import { actorActual, puedeVerTablero, puedeVerCatalogo } from "@/lib/admin/acceso"
 
 export default async function LayoutTablero({
   children,
@@ -28,7 +28,19 @@ export default async function LayoutTablero({
           </Link>
         </nav>
 
-        <span className="text-sm">{actor.nombre}</span>
+        <div className="flex items-center gap-4">
+          <span className="text-sm">{actor.nombre}</span>
+          {puedeVerCatalogo(actor.rol) && (
+            <Link href="/admin" className="text-sm hover:underline">
+              ← Panel
+            </Link>
+          )}
+          <form action="/api/auth/logout" method="post">
+            <button type="submit" className="text-sm hover:underline">
+              Cerrar sesión
+            </button>
+          </form>
+        </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>

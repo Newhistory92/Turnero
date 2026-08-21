@@ -26,6 +26,7 @@ export async function POST(req: Request) {
     httpOnly: true,
     sameSite: "lax",
     path: "/",
+    maxAge: 5 * 60 * 60, // 5 horas
     // secure queda en false a proposito: el totem y los mostradores acceden
     // por HTTP en la red interna, y con secure la cookie no viajaria.
     secure: false,
