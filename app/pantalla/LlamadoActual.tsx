@@ -42,10 +42,10 @@ function EnEspera({ reducirMovimiento }: { reducirMovimiento: boolean | null }) 
         <img
           src="/Gobierno.png"
           alt="San Juan Gobierno"
-          className="h-[8vh] [filter:brightness(0)_invert(1)]"
+          className="h-[12vh] [filter:brightness(0)_invert(1)]"
         />
-        <span aria-hidden className="h-[7vh] w-px bg-white/25" />
-        <img src="/osp-blanco.png" alt="Obra Social Provincia" className="h-[5vh]" />
+        <span aria-hidden className="h-[10vh] w-px bg-white/25" />
+        <img src="/osp-blanco.png" alt="Obra Social Provincia" className="h-[7.5vh]" />
       </motion.div>
 
       <div className="flex flex-col items-center gap-[2vh]">
