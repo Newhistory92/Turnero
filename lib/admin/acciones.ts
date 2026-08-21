@@ -12,6 +12,7 @@ import {
   type EntidadSimple,
   type Resultado,
 } from "./mutaciones"
+import { guardarUsuario } from "./usuarios"
 import type { Entidad } from "./referencias"
 import { type EstadoFormulario } from "./estadoFormulario"
 
@@ -39,6 +40,11 @@ function idOpcional(fd: FormData): string | null {
 
 function varios(fd: FormData, clave: string): string[] {
   return fd.getAll(clave).map(String).filter((v) => v !== "")
+}
+
+/** Una casilla sin marcar no se envia: ausencia es false. */
+function booleano(fd: FormData, clave: string): boolean {
+  return fd.get(clave) !== null
 }
 
 function refrescar(): void {
@@ -149,6 +155,24 @@ export async function accionGuardarAlcance(
   })
 
   if (r.ok) revalidatePath("/admin/alcance")
+  return aEstado(r)
+}
+
+export async function accionGuardarUsuario(
+  _prev: EstadoFormulario,
+  fd: FormData
+): Promise<EstadoFormulario> {
+  const actor = await actorActual()
+  if (!actor) return NO_AUTENTICADO
+
+  const r = await guardarUsuario(actor, {
+    empleadoId: texto(fd, "empleadoId"),
+    rol: texto(fd, "rol"),
+    activo: booleano(fd, "activo"),
+    boxIds: varios(fd, "boxId"),
+  })
+
+  if (r.ok) revalidatePath("/admin/usuarios")
   return aEstado(r)
 }
 

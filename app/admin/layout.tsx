@@ -33,6 +33,11 @@ export default async function LayoutAdmin({
             Sedes, alas, pisos y categorías
           </Link>
           {puedeEditarCatalogo(actor.rol) && (
+            <Link href="/admin/usuarios" className="text-sm hover:underline">
+              Usuarios
+            </Link>
+          )}
+          {puedeEditarCatalogo(actor.rol) && (
             <Link href="/admin/alcance" className="text-sm hover:underline">
               Alcance de métricas
             </Link>
