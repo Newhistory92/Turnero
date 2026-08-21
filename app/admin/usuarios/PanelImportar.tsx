@@ -47,7 +47,7 @@ export function PanelImportar({
           <span className="text-sm text-gris-80">
             {faltan === 0
               ? "No queda nadie por importar."
-              : `${faltan} personas sin importar todavÃ­a.`}
+              : `${faltan} personas sin importar todavía.`}
           </span>
         )}
       </div>
@@ -72,7 +72,7 @@ export function PanelImportar({
 
           <div className="flex max-h-96 flex-col gap-1 overflow-y-auto">
             {visibles.length === 0 ? (
-              <p className="text-sm text-gris-80">Nadie coincide con esa bÃºsqueda.</p>
+              <p className="text-sm text-gris-80">Nadie coincide con esa búsqueda.</p>
             ) : (
               visibles.map((i) => (
                 <label
@@ -101,7 +101,7 @@ export function PanelImportar({
               className="rounded-lg bg-gris-principal px-4 py-2 font-semibold text-white disabled:bg-gainsboro disabled:text-gris-80"
               disabled={pendiente}
             >
-              {pendiente ? "Importandoâ€¦" : "Importar seleccionados"}
+              {pendiente ? "Importando…" : "Importar seleccionados"}
             </button>
             {estado.guardado && <span className="text-sm text-gris-80">Importados</span>}
             {estado.errores.length > 0 && (
