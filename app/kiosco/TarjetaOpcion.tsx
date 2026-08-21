@@ -38,14 +38,14 @@ export function TarjetaOpcion({
         "overflow-hidden rounded-3xl border-2 p-8 text-center transition-transform duration-150 " +
         (deshabilitada
           ? "border-gainsboro bg-gris-20 cursor-not-allowed"
-          : "border-gris-70 bg-white shadow-sm active:scale-95 " +
+          : "border-gris-70 bg-white shadow-lg shadow-black/15 active:scale-95 active:shadow-sm " +
             "focus-visible:outline focus-visible:outline-4 focus-visible:outline-gris-principal")
       }
     >
       <Icono
         className={
           (finDeJornada ? "h-16 w-16 " : "h-24 w-24 ") +
-          (deshabilitada ? "text-gainsboro" : "text-gris-80")
+          (deshabilitada ? "text-gainsboro" : "text-osp")
         }
         strokeWidth={1.5}
         aria-hidden

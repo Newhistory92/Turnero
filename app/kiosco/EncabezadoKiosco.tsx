@@ -5,7 +5,7 @@
 export function EncabezadoKiosco() {
   return (
     <header className="flex shrink-0 items-center gap-6 bg-white px-12 py-5">
-      <img src="/OSP_Gobierno.webp" alt="Obra Social Provincia" className="h-24" />
+      <img src="/OSP_Gobierno.webp" alt="Obra Social Provincia" className="h-36" />
     </header>
   )
 }

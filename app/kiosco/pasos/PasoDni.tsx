@@ -59,7 +59,7 @@ export function PasoDni({ dni, onCambioDni, nombre, onNombre, onContinuar }: Pro
 
         {nombre && !buscando && (
           <p className="mt-12 flex items-center gap-4 text-k-titulo" data-testid="saludo">
-            <CheckCircle2 className="h-12 w-12 text-gris-80" aria-hidden />
+            <CheckCircle2 className="h-12 w-12 text-osp" aria-hidden />
             Bienvenido, {nombre}
           </p>
         )}

@@ -122,22 +122,17 @@ export function Wizard({
 
   useEffect(() => aplicarHardening(), [])
 
-  const [avisoInactividad, setAvisoInactividad] = useState(false)
-
   useEffect(() => {
+    // El aviso visual "sigue ahi" se saco: interrumpia sin necesidad. El
+    // temporizador se conserva igual porque el reinicio en si no es UX, es
+    // privacidad (borra el DNI de quien se alejo sin terminar).
     const temporizador = crearTemporizadorInactividad({
-      onAviso: () => setAvisoInactividad(true),
-      onExpirar: () => {
-        setAvisoInactividad(false)
-        reiniciar()
-      },
+      onAviso: () => {},
+      onExpirar: reiniciar,
     })
     temporizador.iniciar()
 
-    const actividad = () => {
-      setAvisoInactividad(false)
-      temporizador.registrarActividad()
-    }
+    const actividad = () => temporizador.registrarActividad()
     window.addEventListener("pointerdown", actividad)
 
     return () => {
@@ -255,24 +250,6 @@ export function Wizard({
         onVolver={volver}
         onReiniciar={reiniciar}
       />
-
-      {avisoInactividad && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-black/60"
-          data-testid="aviso-inactividad"
-        >
-          <div className="flex flex-col items-center gap-8 rounded-3xl bg-white p-16 text-center">
-            <p className="text-k-titulo font-titulo">¿Sigue ahí?</p>
-            <button
-              type="button"
-              onClick={() => setAvisoInactividad(false)}
-              className="rounded-2xl bg-gris-principal px-12 py-6 text-k-sub text-white"
-            >
-              Sí, continuar
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

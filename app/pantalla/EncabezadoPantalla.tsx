@@ -29,11 +29,10 @@ export function EncabezadoPantalla({
 }) {
   return (
     <header className="flex items-center justify-between border-b border-white/15 px-[2vw] py-[1vh]">
-      {/* Placa blanca: el logo es un lockup con tipografia negra, hecho para
-          fondo claro. Se le da fondo propio en vez de recolorearlo. */}
-      <div className="rounded-lg bg-white px-[1vw] py-[0.6vh]">
-        <img src="/OSP_Gobierno.webp" alt="Obra Social Provincia" className="h-[4vh]" />
-      </div>
+      {/* Version blanca monocroma, sin placa: la misma variante de marca que
+          usa LlamadoActual en el estado "en espera" para fondo oscuro, en
+          vez de la placa blanca que le quedaba chica al logo a color. */}
+      <img src="/osp-blanco.png" alt="Obra Social Provincia" className="h-[6vh]" />
 
       <h1 className="text-[1.5vw] tracking-[0.14em] text-white">
         ALA {ala.toUpperCase()}

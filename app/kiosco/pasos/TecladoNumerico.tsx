@@ -20,8 +20,8 @@ export function TecladoNumerico({ valor, onCambio, onConfirmar, puedeConfirmar }
 
   const claseTecla =
     "flex h-[140px] w-[200px] items-center justify-center rounded-2xl bg-white " +
-    "text-k-tecla text-gris-principal shadow-sm border-2 border-gris-70 " +
-    "active:scale-95 active:bg-gris-20 transition-transform duration-150 " +
+    "text-k-tecla text-gris-principal shadow-lg shadow-black/15 border-2 border-gris-70 " +
+    "active:scale-95 active:bg-gris-20 active:shadow-sm transition-transform duration-150 " +
     "focus-visible:outline focus-visible:outline-4 focus-visible:outline-gris-principal"
 
   return (
@@ -38,7 +38,7 @@ export function TecladoNumerico({ valor, onCambio, onConfirmar, puedeConfirmar }
         onClick={() => onCambio(valor.slice(0, -1))}
         aria-label="Borrar último dígito"
       >
-        <Delete className="h-14 w-14 text-gris-80" aria-hidden />
+        <Delete className="h-14 w-14 text-osp" aria-hidden />
       </button>
 
       <button type="button" className={claseTecla} onClick={() => agregar("0")} aria-label="0">
@@ -52,8 +52,8 @@ export function TecladoNumerico({ valor, onCambio, onConfirmar, puedeConfirmar }
         aria-label="Confirmar DNI"
         className={
           "flex h-[140px] w-[200px] items-center justify-center rounded-2xl " +
-          "bg-gris-principal text-white shadow-sm transition-transform duration-150 " +
-          "active:scale-95 disabled:bg-gainsboro disabled:text-gris-80 " +
+          "bg-gris-principal text-white shadow-lg shadow-black/25 transition-transform duration-150 " +
+          "active:scale-95 active:shadow-sm disabled:bg-gainsboro disabled:text-gris-80 disabled:shadow-none " +
           "focus-visible:outline focus-visible:outline-4 focus-visible:outline-gris-principal"
         }
       >

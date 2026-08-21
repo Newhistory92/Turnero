@@ -14,7 +14,7 @@ export function PantallaNoDisponible({ onReintentar }: { onReintentar: () => voi
       data-testid="no-disponible"
       role="alert"
     >
-      <AlertTriangle className="h-24 w-24 text-gris-80" aria-hidden />
+      <AlertTriangle className="h-24 w-24 text-osp" aria-hidden />
 
       <h1 className="text-k-pregunta font-titulo">No pudimos emitir su turno</h1>
 
@@ -26,7 +26,7 @@ export function PantallaNoDisponible({ onReintentar }: { onReintentar: () => voi
       <button
         type="button"
         onClick={onReintentar}
-        className="rounded-2xl bg-gris-principal px-12 py-6 text-k-sub text-white"
+        className="rounded-2xl bg-gris-principal px-12 py-6 text-k-sub text-white shadow-lg shadow-black/25 active:scale-95 active:shadow-sm transition-transform duration-150"
       >
         Volver a intentar
       </button>

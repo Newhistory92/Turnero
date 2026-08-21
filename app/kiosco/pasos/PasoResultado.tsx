@@ -75,7 +75,7 @@ export function PasoResultado({
             </motion.div>
 
             <motion.div
-              className="flex items-start gap-4 rounded-2xl border-2 border-osp bg-white p-6"
+              className="flex items-start gap-4 rounded-2xl border-2 border-osp bg-white p-6 shadow-lg shadow-black/15"
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 300, damping: 22, delay: 0.15 }}
@@ -95,7 +95,7 @@ export function PasoResultado({
         <hr className="border-gris-70" />
 
         <p className="flex items-center gap-4 text-k-sub">
-          <Printer className="h-10 w-10 text-gris-80" aria-hidden />
+          <Printer className="h-10 w-10 text-osp" aria-hidden />
           Imprimiendo su ticket
         </p>
 
