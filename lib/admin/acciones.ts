@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { actorActual } from "./acceso"
+import { actorActual, puedeEditarCatalogo } from "./acceso"
 import {
   guardarTramite,
   guardarBox,
@@ -13,6 +13,7 @@ import {
   type Resultado,
 } from "./mutaciones"
 import { guardarUsuario } from "./usuarios"
+import { importarEmpleados } from "./importacion"
 import type { Entidad } from "./referencias"
 import { type EstadoFormulario } from "./estadoFormulario"
 
@@ -174,6 +175,45 @@ export async function accionGuardarUsuario(
 
   if (r.ok) revalidatePath("/admin/usuarios")
   return aEstado(r)
+}
+
+export async function accionImportar(
+  _prev: EstadoFormulario,
+  fd: FormData
+): Promise<EstadoFormulario> {
+  const actor = await actorActual()
+  if (!actor) return NO_AUTENTICADO
+
+  // Importar da de alta gente en el turnero: la misma autoridad que repartir
+  // roles. Se revalida aca y no se confia en que la pantalla haya filtrado.
+  if (!puedeEditarCatalogo(actor.rol)) {
+    return {
+      errores: [{ campo: "rol", mensaje: "No tenés permiso para editar usuarios" }],
+      guardado: false,
+    }
+  }
+
+  const usuarios = varios(fd, "nombreUsuario")
+  if (usuarios.length === 0) {
+    return {
+      errores: [{ campo: "nombreUsuario", mensaje: "Elegí al menos una persona" }],
+      guardado: false,
+    }
+  }
+
+  try {
+    await importarEmpleados(usuarios)
+  } catch {
+    return {
+      errores: [
+        { campo: "nombreUsuario", mensaje: "No se pudo consultar la base de la obra social" },
+      ],
+      guardado: false,
+    }
+  }
+
+  revalidatePath("/admin/usuarios")
+  return { errores: [], guardado: true }
 }
 
 export async function accionBorrar(
