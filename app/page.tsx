@@ -9,7 +9,7 @@ import { Monitor, Tablet, ArrowRight } from "lucide-react"
  */
 export default function HomePage() {
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-gris-20 px-6 py-16 font-cuerpo text-gris-principal">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-white px-6 py-16 font-cuerpo text-gris-principal">
       <img src="/OSP_Gobierno.webp" alt="Obra Social Provincia" className="h-16 sm:h-20" />
 
       <div className="mt-10 max-w-xl text-center">
