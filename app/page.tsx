@@ -33,7 +33,7 @@ export default async function HomePage() {
 
         <Link
           href="/kiosco"
-          className="group flex flex-col gap-4 rounded-2xl border-2 border-gris-70 bg-white p-8 shadow-sm transition-colors hover:border-osp focus-visible:outline focus-visible:outline-4 focus-visible:outline-gris-principal"
+          className="group flex flex-col gap-4 rounded-2xl border-2 border-gris-70 bg-white p-8 shadow-lg shadow-black/10 transition duration-150 hover:-translate-y-0.5 hover:shadow-xl hover:border-osp active:translate-y-0 active:shadow-sm focus-visible:outline focus-visible:outline-4 focus-visible:outline-gris-principal"
         >
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gris-20">
             <Tablet className="h-7 w-7 text-gris-80" aria-hidden />

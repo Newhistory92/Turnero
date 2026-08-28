@@ -34,7 +34,7 @@ export function SelectorPantalla({ alas }: { alas: AlaVista[] }) {
       <button
         type="button"
         onClick={() => setAbierto(true)}
-        className="group flex flex-col gap-4 rounded-2xl border-2 border-gris-70 bg-white p-8 text-left shadow-sm transition-colors hover:border-osp focus-visible:outline focus-visible:outline-4 focus-visible:outline-gris-principal"
+        className="group flex flex-col gap-4 rounded-2xl border-2 border-gris-70 bg-white p-8 text-left shadow-lg shadow-black/10 transition duration-150 hover:-translate-y-0.5 hover:shadow-xl hover:border-osp active:translate-y-0 active:shadow-sm focus-visible:outline focus-visible:outline-4 focus-visible:outline-gris-principal"
       >
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gris-20">
           <Monitor className="h-7 w-7 text-gris-80" aria-hidden />
@@ -86,7 +86,7 @@ export function SelectorPantalla({ alas }: { alas: AlaVista[] }) {
                     <Link
                       ref={i === 0 ? primerEnlace : undefined}
                       href={`/pantalla/${a.slug}`}
-                      className="flex items-center justify-between rounded-xl border-2 border-gris-70 px-4 py-3 text-sm font-medium text-gris-principal transition-colors hover:border-osp focus-visible:outline focus-visible:outline-4 focus-visible:outline-gris-principal"
+                      className="flex items-center justify-between rounded-xl border-2 border-gris-70 bg-white px-4 py-3 text-sm font-medium text-gris-principal shadow-md shadow-black/10 transition duration-150 hover:border-osp hover:shadow-lg active:shadow-sm focus-visible:outline focus-visible:outline-4 focus-visible:outline-gris-principal"
                     >
                       Ala {a.nombre}
                       <ArrowRight className="h-4 w-4" aria-hidden />
