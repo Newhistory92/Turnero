@@ -18,7 +18,8 @@ async function sembrarLlamado(
   tramiteId: string,
   numero: string,
   tipo: "llamado" | "rellamado",
-  estado = "llamado"
+  estado = "llamado",
+  datos: { nombreAfiliado?: string | null; dni?: string | null } = {}
 ) {
   const turno = await prisma.turno.create({
     data: {
@@ -27,6 +28,8 @@ async function sembrarLlamado(
       tramiteId,
       estado,
       boxId,
+      nombreAfiliado: datos.nombreAfiliado ?? null,
+      dni: datos.dni ?? null,
       requestId: `int-${numero}-${Date.now()}-${Math.random()}`,
     },
   })
@@ -81,6 +84,20 @@ describe("armarSnapshot — ultimoLlamado", () => {
 
     const s = await armarSnapshot(box.id)
     expect(s.ultimoLlamado?.numero).toBe("Z04")
+  })
+
+  it("incluye nombre y dni del afiliado, para cuando el operador tenga dudas", async () => {
+    const box = await prisma.box.findFirstOrThrow()
+    const bt = await prisma.boxTramite.findFirstOrThrow({ where: { boxId: box.id } })
+
+    await sembrarLlamado(box.id, bt.tramiteId, "Z07", "llamado", "finalizado", {
+      nombreAfiliado: "Pérez, Juan",
+      dni: "12345678",
+    })
+
+    const s = await armarSnapshot(box.id)
+    expect(s.ultimoLlamado?.nombreAfiliado).toBe("Pérez, Juan")
+    expect(s.ultimoLlamado?.dni).toBe("12345678")
   })
 
   it("no toma llamados de otro box", async () => {

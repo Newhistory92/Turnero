@@ -9,6 +9,7 @@ import { ColaBox } from "./ColaBox"
 import { ListaAusentes } from "./ListaAusentes"
 import { DialogoDerivar } from "./DialogoDerivar"
 import { usarProtectorPantalla } from "./usarProtectorPantalla"
+import { formatearDni } from "@/lib/kiosco/dni"
 
 export function PanelOperador() {
   const router = useRouter()
@@ -97,6 +98,13 @@ export function PanelOperador() {
                 {snapshot.ultimoLlamado.numero}
               </span>{" "}
               · {snapshot.ultimoLlamado.tramiteNombre}
+              {(snapshot.ultimoLlamado.nombreAfiliado || snapshot.ultimoLlamado.dni) && (
+                <>
+                  {" · "}
+                  {snapshot.ultimoLlamado.nombreAfiliado ??
+                    formatearDni(snapshot.ultimoLlamado.dni!)}
+                </>
+              )}
             </p>
           )}
         </div>

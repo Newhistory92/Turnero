@@ -9,6 +9,7 @@ export interface TurnoPanel {
   tramiteId: string
   tramiteNombre: string
   nombreAfiliado: string | null
+  dni: string | null
   estado: string
   createdAt: string
 }
@@ -60,6 +61,7 @@ export async function armarSnapshot(boxId: string): Promise<SnapshotOperador> {
     tramiteId: t.tramiteId,
     tramiteNombre: nombres.get(t.tramiteId)?.tramite ?? t.tramiteId,
     nombreAfiliado: t.nombreAfiliado,
+    dni: t.dni,
     estado: t.estado,
     createdAt: t.createdAt.toISOString(),
   })
