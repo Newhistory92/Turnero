@@ -88,7 +88,17 @@ export default function LoginOperador() {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6">
-      <h1 className="mb-8 font-titulo text-3xl font-semibold">Turnero</h1>
+      <div className="mb-8 flex items-center gap-3">
+        <h1 className="font-titulo text-3xl font-semibold">Turnero</h1>
+        {error && (
+          <img
+            src="/gmdKBCklQ7ElxAN7oH.webp"
+            alt=""
+            aria-hidden="true"
+            className="h-14 w-14 animate-in zoom-in-75 fade-in duration-200"
+          />
+        )}
+      </div>
 
       <form onSubmit={eligiendo ? entrar : pedirAcceso} className="flex flex-col gap-4">
         <label className="flex flex-col gap-2">
