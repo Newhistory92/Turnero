@@ -72,14 +72,14 @@ export function DialogoDerivar({
             <button
               type="button"
               onClick={() => onConfirmar(elegido.id)}
-              className="rounded-2xl bg-gris-principal px-8 py-4 text-lg font-semibold text-white"
+              className="rounded-2xl bg-gris-principal px-8 py-4 text-lg font-semibold text-white shadow-lg shadow-black/15 transition-shadow duration-150 hover:shadow-xl active:shadow-sm"
             >
               Confirmar derivación
             </button>
             <button
               type="button"
               onClick={() => setElegido(null)}
-              className="rounded-2xl border-2 border-gris-70 px-6 py-4 text-lg font-semibold"
+              className="rounded-2xl border-2 border-gris-70 bg-white px-6 py-4 text-lg font-semibold shadow-md shadow-black/10 transition-shadow duration-150 hover:shadow-lg active:shadow-sm"
             >
               Volver
             </button>

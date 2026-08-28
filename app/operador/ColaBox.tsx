@@ -16,7 +16,7 @@ export function ColaBox({ snapshot }: { snapshot: SnapshotOperador }) {
   const { resumen, cola } = snapshot
 
   return (
-    <section className="rounded-2xl bg-white p-6">
+    <section className="rounded-2xl bg-white p-6 shadow-lg shadow-black/10">
       <h2 className="font-titulo text-2xl font-semibold" data-testid="total-cola">
         {resumen.total === 0
           ? "Nadie esperando"

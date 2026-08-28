@@ -68,15 +68,15 @@ export function TurnoActivo({
   const reduce = useReducedMotion()
 
   const principal =
-    "rounded-2xl bg-gris-principal px-8 py-5 text-xl font-semibold text-white " +
-    "disabled:bg-gainsboro disabled:text-gris-80"
+    "rounded-2xl bg-gris-principal px-8 py-5 text-xl font-semibold text-white shadow-lg shadow-black/15 " +
+    "transition-shadow duration-150 hover:shadow-xl active:shadow-sm disabled:bg-gainsboro disabled:text-gris-80 disabled:shadow-none"
   const secundario =
-    "rounded-2xl border-2 border-gris-70 bg-white px-6 py-4 text-lg font-semibold " +
-    "disabled:text-gris-80"
+    "rounded-2xl border-2 border-gris-70 bg-white px-6 py-4 text-lg font-semibold shadow-md shadow-black/10 " +
+    "transition-shadow duration-150 hover:shadow-lg active:shadow-sm disabled:text-gris-80 disabled:shadow-none"
 
   if (!turno) {
     return (
-      <section className="flex flex-col items-center justify-center rounded-2xl bg-white p-10">
+      <section className="flex flex-col items-center justify-center rounded-2xl bg-white p-10 shadow-lg shadow-black/10">
         <p className="text-lg">Sin turno en atención</p>
         <button
           type="button"
@@ -106,7 +106,7 @@ export function TurnoActivo({
       }
       transition={{ duration: 0.4, ease: "easeOut" }}
       style={{ borderLeftWidth: 4 }}
-      className="flex flex-col items-center rounded-2xl bg-white p-10"
+      className="flex flex-col items-center rounded-2xl bg-white p-10 shadow-lg shadow-black/10"
     >
       {/* Etiqueta de estado con punto indicador */}
       <div className="flex items-center gap-2">

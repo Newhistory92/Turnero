@@ -85,7 +85,21 @@ export function PanelOperador() {
   return (
     <main className="mx-auto grid max-w-7xl gap-6 p-6 lg:grid-cols-2">
       <header className="lg:col-span-2 flex items-center justify-between">
-        <h1 className="font-titulo text-2xl font-semibold">{snapshot.boxNombre}</h1>
+        <div>
+          <h1 className="font-titulo text-2xl font-semibold">{snapshot.boxNombre}</h1>
+          {/* Independiente de "activo": ese desaparece apenas el turno deja
+              de estar en curso, y es justo ahi cuando el operador con dudas
+              ("¿a quien llame recien?") necesita esta referencia. */}
+          {snapshot.ultimoLlamado && (
+            <p className="mt-1 text-sm text-gris-80">
+              Último llamado:{" "}
+              <span className="font-mono font-semibold text-gris-principal">
+                {snapshot.ultimoLlamado.numero}
+              </span>{" "}
+              · {snapshot.ultimoLlamado.tramiteNombre}
+            </p>
+          )}
+        </div>
         <form action="/api/auth/logout" method="post">
           <button
             type="submit"
@@ -95,7 +109,7 @@ export function PanelOperador() {
                 ? "Finalizá o derivá el turno en curso antes de salir"
                 : undefined
             }
-            className="rounded-xl border-2 border-gris-70 px-4 py-2 text-sm font-semibold disabled:text-gris-80"
+            className="rounded-xl border-2 border-gris-70 bg-white px-4 py-2 text-sm font-semibold shadow-md shadow-black/10 transition-shadow duration-150 hover:shadow-lg active:shadow-sm disabled:text-gris-80 disabled:shadow-none"
           >
             Cerrar sesión
           </button>

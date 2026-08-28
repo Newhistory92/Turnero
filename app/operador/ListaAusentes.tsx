@@ -14,7 +14,7 @@ export function ListaAusentes({
   if (ausentes.length === 0) return null
 
   return (
-    <section className="rounded-2xl bg-white p-6">
+    <section className="rounded-2xl bg-white p-6 shadow-lg shadow-black/10">
       <h2 className="font-titulo text-xl font-semibold">
         Ausentes ({ausentes.length})
       </h2>
@@ -29,7 +29,7 @@ export function ListaAusentes({
               type="button"
               onClick={() => onLlamar(t.id)}
               disabled={deshabilitado}
-              className="rounded-xl border-2 border-gris-70 px-4 py-2 text-sm font-semibold disabled:text-gris-80"
+              className="rounded-xl border-2 border-gris-70 bg-gris-20 px-4 py-2 text-sm font-semibold shadow-md shadow-black/10 transition-shadow duration-150 hover:shadow-lg active:shadow-sm disabled:text-gris-80 disabled:shadow-none"
             >
               Llamar
             </button>

@@ -20,6 +20,13 @@ export interface SnapshotOperador {
   cola: TurnoPanel[]
   ausentes: TurnoPanel[]
   activo: TurnoPanel | null
+  /**
+   * El ultimo numero que este box llamo, sea cual sea su estado ahora mismo
+   * (atendido, ausente, derivado). Es una referencia para el operador que
+   * duda si llamo tal numero o no — no depende de `activo`, que desaparece
+   * apenas el turno deja de estar en curso.
+   */
+  ultimoLlamado: TurnoPanel | null
 }
 
 function hoy(): Date {
@@ -72,6 +79,14 @@ export async function armarSnapshot(boxId: string): Promise<SnapshotOperador> {
     ? resumirCola(dominio, box, nombres)
     : { total: 0, lineas: [], esperaMasVieja: null }
 
+  // Por evento y no por Turno.estado: un rellamado sobre un numero mas viejo
+  // tiene que volver a ser "el ultimo llamado", igual que en snapshotPantalla.
+  const ultimoEvento = await prisma.turnoEvento.findFirst({
+    where: { boxId, tipo: { in: ["llamado", "rellamado"] } },
+    orderBy: { timestamp: "desc" },
+    include: { turno: true },
+  })
+
   return {
     boxId,
     boxNombre: boxDb.nombre,
@@ -88,5 +103,6 @@ export async function armarSnapshot(boxId: string): Promise<SnapshotOperador> {
       turnosDb
         .filter((t) => t.boxId === boxId && ["llamado", "atendiendo"].includes(t.estado))
         .map(aPanel)[0] ?? null,
+    ultimoLlamado: ultimoEvento ? aPanel(ultimoEvento.turno) : null,
   }
 }
