@@ -79,6 +79,7 @@ export async function horasDeBoxPorEmpleado(
   const horas = new Map<string, number>()
   for (const s of sesiones) {
     const cierre = s.fin ?? s.ultimoLatido
+    if (!cierre) continue
     const ms = cierre.getTime() - s.inicio.getTime()
     if (ms <= 0) continue
     horas.set(s.empleadoId, (horas.get(s.empleadoId) ?? 0) + ms / 3_600_000)
